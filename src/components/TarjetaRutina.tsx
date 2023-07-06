@@ -9,20 +9,21 @@ import routineApi from '../api/routineApi';
 
 interface Props {
     rutina: ContenidoRutinas;
-    isFromRutinasSeguidas: boolean;
+    isFromRutinasSeguidas?: boolean;
+    isFromRutinasCreadas?: boolean;
 }
 
-export const TarjetaRutina = memo(({ rutina, isFromRutinasSeguidas }: Props) => {
-    const navigation = useNavigation();
+export const TarjetaRutina = memo(({ rutina, isFromRutinasSeguidas, isFromRutinasCreadas }: Props) => {
+    const navigation = useNavigation<any>();
     const { token } = useContext(AuthContext);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const rutinasContext = useContext(RutinasContext);
-    const { rutinasSeguidasIds, setRutinasSeguidasIds, actualizarRutinas , setActualizarRutinas} = rutinasContext;
+    const { rutinasSeguidasIds, setRutinasSeguidasIds, actualizarRutinas, setActualizarRutinas } = rutinasContext;
     const isRutinaSeguida = rutinasSeguidasIds.includes(rutina.id);
 
 
     const handleRutinaDetails = () => {
-        navigation.navigate('RutinaDetailsScreen' as never, { rutina, rutinasSeguidasIds, isFromRutinasSeguidas } as never);
+        navigation.navigate('RutinaDetailsScreen', { rutina, rutinasSeguidasIds, isFromRutinasSeguidas , isFromRutinasCreadas});
     };
 
     const handleFollowButtonPress = async () => {
@@ -36,7 +37,7 @@ export const TarjetaRutina = memo(({ rutina, isFromRutinasSeguidas }: Props) => 
                 },
             };
             const response = await routineApi.post(`/rutinas/seguir/${rutina.id}`, config);
-            setRutinasSeguidasIds([...rutinasSeguidasIds,rutina.id]);
+            setRutinasSeguidasIds([...rutinasSeguidasIds, rutina.id]);
             setActualizarRutinas(true);
             setActualizarRutinas(false);
             setIsModalVisible(false);
@@ -54,25 +55,33 @@ export const TarjetaRutina = memo(({ rutina, isFromRutinasSeguidas }: Props) => 
         setIsModalVisible(false);
     };
 
+    const handleEditarPress = () => {
+        console.log('Pressed editar')
+    };
+
+    const handleEliminarPress = () => {
+        console.log('Pressed eliminar')
+    };
+
     const handleUnfollowButtonPress = async () => {
         if (!token) {
-          return; // No realizar la llamada a la API si no hay un token de autenticación
+            return; // No realizar la llamada a la API si no hay un token de autenticación
         }
         try {
-          const config = {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          };
-          await routineApi.delete(`/rutinas/dejarseguir/${rutina.id}`, config);
-          setRutinasSeguidasIds(prevIds => prevIds.filter(id => id !== rutina.id));
-          setIsModalVisible(false);
-          setActualizarRutinas(true);
-          setActualizarRutinas(false);
+            const config = {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            };
+            await routineApi.delete(`/rutinas/dejarseguir/${rutina.id}`, config);
+            setRutinasSeguidasIds(prevIds => prevIds.filter(id => id !== rutina.id));
+            setIsModalVisible(false);
+            setActualizarRutinas(true);
+            setActualizarRutinas(false);
         } catch (error) {
-          console.log('Error al dejar de seguir la rutina:', error);
+            console.log('Error al dejar de seguir la rutina:', error);
         }
-      };
+    };
 
     return (
         <View style={{ flex: 1 }}>
@@ -81,7 +90,7 @@ export const TarjetaRutina = memo(({ rutina, isFromRutinasSeguidas }: Props) => 
                 onPress={handleRutinaDetails}
                 onLongPress={handleLongPress}
             >
-                <Text style={{ ...styles.tarjetaText, fontWeight: 'bold' }}>{rutina.nombre}{ rutina.id}</Text>
+                <Text style={{ ...styles.tarjetaText, fontWeight: 'bold' }}>{rutina.nombre}</Text>
                 <Text style={styles.tarjetaText}>{rutina.descripcion}</Text>
                 <Text style={styles.tarjetaText}>Creada por: {rutina.creador}</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
@@ -98,34 +107,50 @@ export const TarjetaRutina = memo(({ rutina, isFromRutinasSeguidas }: Props) => 
                             <View style={styles.modalContent}>
                                 <Text style={styles.modalText}>{rutina.nombre}</Text>
 
-                                {isRutinaSeguida ? (
-                                    <>
-                                        <Text style={styles.modalText}>Ya sigues esta rutina</Text>
-                                        <View style={styles.buttonContainer}>
-                                            <TouchableOpacity style={styles.cerrarButton} onPress={handleCloseModal}>
-                                                <Text style={styles.cerrarButtonText}>Cerrar</Text>
-                                            </TouchableOpacity>
-                                            {isFromRutinasSeguidas ? (
-                                                <TouchableOpacity onPress={handleUnfollowButtonPress} style={styles.unfollowButton}>
-                                                    <Text style={styles.unfollowButtonText}>Dejar de seguir</Text>
-                                                </TouchableOpacity>
-                                            ) : null}
-                                        </View>
-                                    </>
+                                {isFromRutinasCreadas ? (
+                                    <View style={styles.buttonContainer}>
+                                        <TouchableOpacity style={styles.seguirButton} onPress={handleEditarPress}>
+                                            <Text style={styles.cerrarButtonText}>Editar</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity style={styles.seguirButton} onPress={handleEliminarPress}>
+                                            <Text style={styles.cerrarButtonText}>Eliminar</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity style={styles.cerrarButton} onPress={handleCloseModal}>
+                                            <Text style={styles.cerrarButtonText}>Cerrar</Text>
+                                        </TouchableOpacity>
+                                    </View>
                                 ) : (
+                                    // Mostrar el bloque condicional actual si isFromRutinasCreadas es false
                                     <>
-                                        <Text style={styles.modalText}>{rutina.descripcion}</Text>
-                                        <View style={styles.buttonContainer}>
-                                            <TouchableOpacity style={styles.seguirButton} onPress={handleFollowButtonPress}>
-                                                <Text style={styles.seguirButtonText}>Seguir</Text>
-                                            </TouchableOpacity>
-                                            <TouchableOpacity style={styles.cerrarButton} onPress={handleCloseModal}>
-                                                <Text style={styles.cerrarButtonText}>Cerrar</Text>
-                                            </TouchableOpacity>
-                                        </View>
+                                        {isRutinaSeguida ? (
+                                            <>
+                                                <Text style={styles.modalText}>Ya sigues esta rutina</Text>
+                                                <View style={styles.buttonContainer}>
+                                                    <TouchableOpacity style={styles.cerrarButton} onPress={handleCloseModal}>
+                                                        <Text style={styles.cerrarButtonText}>Cerrar</Text>
+                                                    </TouchableOpacity>
+                                                    {isFromRutinasSeguidas ? (
+                                                        <TouchableOpacity onPress={handleUnfollowButtonPress} style={styles.unfollowButton}>
+                                                            <Text style={styles.unfollowButtonText}>Dejar de seguir</Text>
+                                                        </TouchableOpacity>
+                                                    ) : null}
+                                                </View>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Text style={styles.modalText}>{rutina.descripcion}</Text>
+                                                <View style={styles.buttonContainer}>
+                                                    <TouchableOpacity style={styles.seguirButton} onPress={handleFollowButtonPress}>
+                                                        <Text style={styles.seguirButtonText}>Seguir</Text>
+                                                    </TouchableOpacity>
+                                                    <TouchableOpacity style={styles.cerrarButton} onPress={handleCloseModal}>
+                                                        <Text style={styles.cerrarButtonText}>Cerrar</Text>
+                                                    </TouchableOpacity>
+                                                </View>
+                                            </>
+                                        )}
                                     </>
                                 )}
-
                             </View>
                         </TouchableWithoutFeedback>
                     </View>
@@ -168,7 +193,7 @@ const styles = StyleSheet.create({
     modalText: {
         marginBottom: 10,
         textAlign: 'center',
-        color:'black',
+        color: 'black',
     },
     seguirButton: {
         backgroundColor: '#5856D6',

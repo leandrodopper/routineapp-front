@@ -17,10 +17,12 @@ interface Props {
   width?: number;
   editable?: boolean;
   onDelete: () => void;
+  series?: number;
+  repeticiones?: number;
 }
 
-export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, editable = false, onDelete }: Props) => {
-  const navigation = useNavigation();
+export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, editable = false, onDelete, series, repeticiones }: Props) => {
+  const navigation = useNavigation<any>();
   const { token } = useContext(AuthContext);
 
   const [gifUrl, setGifUrl] = useState<string | null>(null);
@@ -29,7 +31,7 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
 
   const getThumbnail = useCallback(async () => {
-    if (!token) {
+    if (!token || !ejercicio) {
       return; // No realizar la llamada a la API si no hay un token de autenticación
     }
     try {
@@ -38,7 +40,7 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
           Authorization: `Bearer ${token}`,
         },
       };
-      const response = await axios.get(`http://192.168.1.33:8080/miniaturas/${ejercicio.imagen}`, {
+      const response = await axios.get(`http://192.168.1.42:8080/miniaturas/${ejercicio.imagen}`, {
         responseType: 'arraybuffer',
         ...config,
       });
@@ -47,7 +49,7 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
     } catch (error) {
       console.error(error);
     }
-  }, [ejercicio.imagen, token]);
+  }, [ejercicio, token]);
 
   useEffect(() => {
     getThumbnail();
@@ -65,7 +67,7 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
               Authorization: `Bearer ${token}`,
             },
           };
-          const response = await axios.get(`http://192.168.1.33:8080/gifs/${selectedEjercicio?.imagen}`, {
+          const response = await axios.get(`http://192.168.1.42:8080/gifs/${selectedEjercicio?.imagen}`, {
             responseType: 'arraybuffer',
             ...config,
           });
@@ -81,7 +83,6 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
   }, [modalVisible, selectedEjercicio, token]);
 
   const handleEdit = (ejercicio: Ejercicio) => {
-   
     setModalVisible(false);
     navigation.navigate('EditEjercicio' as never, { ejercicio } as never);
   };
@@ -134,7 +135,7 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
       }}
       style={{
         width: '100%',
-        height: 100,
+        height: 120,
         borderRadius: 20,
         flexDirection: 'row',
         backgroundColor: 'white',
@@ -150,9 +151,15 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
         </View>
 
         <View style={{ flex: 1, height: '90%', justifyContent: 'center' }}>
-          <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>{ejercicio.nombre}</Text>
-          <Text style={{ color: 'gray', fontSize: 14 }}>Grupo muscular: {ejercicio.grupo_muscular}</Text>
-          <Text style={{ color: 'gray', fontSize: 14 }}>Dificultad: {ejercicio.dificultad}</Text>
+          <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>{ejercicio?.nombre}</Text>
+          <Text style={{ color: 'gray', fontSize: 14 }}>Grupo muscular: {ejercicio?.grupo_muscular}</Text>
+          <Text style={{ color: 'gray', fontSize: 14 }}>Dificultad: {ejercicio?.dificultad}</Text>
+          {series && repeticiones && (
+            <>
+              <Text style={{ color: 'gray', fontSize: 14 }}>Series: {series}</Text>
+              <Text style={{ color: 'gray', fontSize: 14, marginBottom:6 }}>Repeticiones: {repeticiones}</Text>
+            </>
+          )}
         </View>
       </View>
       <Modal
@@ -160,12 +167,12 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
         animationType="fade"
         transparent={true}
         onRequestClose={closeModal}
-        
+
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             {editable && (
-              <View style={{flexDirection:'row', justifyContent:'center'}}>
+              <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
                 <TouchableOpacity style={styles.editButton} onPress={() => handleEdit(ejercicio)}>
                   <Icon name="pencil-outline" size={24} color="white" />
                   <Text style={styles.editButtonText}>Editar</Text>
@@ -255,14 +262,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
     backgroundColor: '#5856D6',
     borderRadius: 20,
-    marginRight:60,
-    marginBottom:20,
-    flexDirection:'row',
-    alignItems:'center'
+    marginRight: 60,
+    marginBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'center'
   },
   editButtonText: {
     color: 'white',
-    fontWeight:'bold',
+    fontWeight: 'bold',
   },
   deleteButton: {
     alignSelf: 'flex-start',
@@ -271,7 +278,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
     backgroundColor: 'red',
     borderRadius: 20,
-    flexDirection:'row',
-    alignItems:'center'
+    flexDirection: 'row',
+    alignItems: 'center'
   },
 });

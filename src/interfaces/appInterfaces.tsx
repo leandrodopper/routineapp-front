@@ -80,11 +80,20 @@ export interface ContenidoRutinas {
     puntuacion:  number;
 }
 
-export interface DiaRutina{
-    id: number;
-    descripcion: string;
-    nombre: string;
-    ejercicios?: Ejercicio[];
+
+export interface DiaRutina {
+    id:                  number;
+    id_rutina:           number;
+    descripcion:         string;
+    nombre:              string;
+    ejerciciosDiaRutina: EjercicioDiaRutina[];
+}
+
+export interface EjercicioDiaRutina {
+    id_EjercicioRutina: number;
+    ejercicioId:        number;
+    series:             number;
+    repeticiones:       number;
 }
 
 
@@ -92,7 +101,7 @@ export interface Rutina {
     id:          number;
     nombre:      string;
     descripcion: string;
-    dias_rutina: any[];
+    dias_rutina: DiaRutina[];
     creador:     string;
     puntuacion:  number;
 }

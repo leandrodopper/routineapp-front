@@ -6,6 +6,7 @@ import routineApi from '../api/routineApi'
 import { ContenidoRutinas, GetRutinasResponse } from '../interfaces/appInterfaces'
 import { TarjetaRutina } from '../components/TarjetaRutina'
 import { RutinasContext } from '../context/RutinasContext'
+import { useIsFocused, useNavigation } from '@react-navigation/native'
 
 
 
@@ -13,7 +14,10 @@ import { RutinasContext } from '../context/RutinasContext'
 export const RutinasScreen = () => {
     const { token } = useContext(AuthContext);
     const [rutinas, setRutinas] = useState<ContenidoRutinas[]>([]);
-    const { rutinasSeguidasIds, setRutinasSeguidasIds } = useContext(RutinasContext);
+    const navigation = useNavigation<any>();
+    const { rutinasSeguidasIds, setRutinasSeguidasIds, actualizarRutinas, setActualizarRutinas } = useContext(RutinasContext);
+    const [isFocused, setIsFocused] = useState(false);
+
 
     const fetchData = async (reset: boolean = true) => {
         if (!token) {
@@ -27,36 +31,45 @@ export const RutinasScreen = () => {
             };
             const response = await routineApi.get<GetRutinasResponse>('/rutinas', config);
             setRutinas(response.data.contenido);
-
         } catch (error) {
             console.error(error);
         }
     };
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        if (isFocused) {
+          fetchData();
+        }
+      }, [isFocused]);
 
- 
+    const handleAddRutina = () => {
+        navigation.navigate('AddRutinaScreen');
+    }
+
+    const isScreenFocused = useIsFocused();
+    useEffect(() => {
+        setIsFocused(isScreenFocused);
+    }, [isScreenFocused]);
+
 
     return (
-        <View style={{ flex: 1, alignItems: 'center', paddingVertical:10 }}>
-            <Text style={{ marginTop: 20, fontWeight: '300', fontSize: 18, textAlign: 'center', color: 'black' , padding:5}}>Crea una rutina o selecciona una ya creada</Text>
-            <TouchableOpacity style={styles.addrutinaButton} onPress={() => { console.log({rutinasSeguidasIds}) }}>
+        <View style={{ flex: 1, alignItems: 'center', paddingVertical: 10 }}>
+            <Text style={{ marginTop: 20, fontWeight: '300', fontSize: 18, textAlign: 'center', color: 'black', padding: 5 }}>Crea una rutina o selecciona una ya creada</Text>
+            <TouchableOpacity style={styles.addrutinaButton} onPress={handleAddRutina}>
                 <Icon name="add-outline" color='white' size={20} />
             </TouchableOpacity>
             <FlatList
                 showsVerticalScrollIndicator={false}
                 data={rutinas}
                 renderItem={({ item }) => (
-                    <TarjetaRutina rutina={item} isFromRutinasSeguidas={false}/>
-                  )}
-                  keyExtractor={(item) => item.id.toString()}
-                  style={{
-                    width:'85%',
-                    marginTop:10,
-                  }}
-            /> 
+                    <TarjetaRutina rutina={item} isFromRutinasSeguidas={false} />
+                )}
+                keyExtractor={(item) => item.id.toString()}
+                style={{
+                    width: '85%',
+                    marginTop: 10,
+                }}
+            />
         </View>
     );
 };

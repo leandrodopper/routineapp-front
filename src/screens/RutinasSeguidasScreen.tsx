@@ -15,7 +15,7 @@ export const RutinasSeguidasScreen = () => {
   const { rutinasSeguidasIds, setRutinasSeguidasIds, actualizarRutinas, setActualizarRutinas } = useContext(RutinasContext);
   useEffect(() => {
     const fetchRutinasSeguidas = async () => {
-      console.log({actualizarRutinas})
+      // console.log({actualizarRutinas})
       try {
         const config = {
           headers: {
@@ -39,6 +39,7 @@ export const RutinasSeguidasScreen = () => {
   useEffect(() => {
     if (isFocused) {
       setActualizarRutinas(true);
+      setActualizarRutinas(false);
     }
   }, [isFocused]);
 

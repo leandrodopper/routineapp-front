@@ -1,6 +1,6 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { ContenidoRutinas, DiaRutina, Ejercicio } from '../interfaces/appInterfaces';
+import { ContenidoRutinas, DiaRutina, Ejercicio, EjercicioDiaRutina } from '../interfaces/appInterfaces';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { TarjetaEjercicio } from '../components/TarjetaEjercicio';
@@ -10,43 +10,99 @@ import { AuthContext } from '../context/AuthContext';
 
 export const RutinaDetailsScreen = () => {
   const route = useRoute();
-  const { rutina, rutinasSeguidasIds, isFromRutinasSeguidas }: { rutina?: ContenidoRutinas, rutinasSeguidasIds?: number[], isFromRutinasSeguidas?: boolean } = route.params || {};
+  const { rutina, rutinasSeguidasIds, isFromRutinasSeguidas, isFromRutinasCreadas }: { rutina?: ContenidoRutinas, rutinasSeguidasIds?: number[], isFromRutinasSeguidas?: boolean, isFromRutinasCreadas?: boolean } = route.params || {};
   const navigation = useNavigation();
   const { token } = useContext(AuthContext);
   const rutinasContext = useContext(RutinasContext);
-    const { setRutinasSeguidasIds, actualizarRutinas , setActualizarRutinas} = rutinasContext;
+  const { setRutinasSeguidasIds, actualizarRutinas, setActualizarRutinas } = rutinasContext;
   // const { rutinasSeguidasIds: contextRutinasSeguidasIds } = rutinasContext;
+  const [listaEjercicios, setListaEjercicios] = useState<Ejercicio[]>([]);
 
 
 
-  const renderDiaRutina = ({ item: dia }: { item: DiaRutina }) => {
-    return (
-      <View style={styles.diaRutinaContainer}>
-        <Text style={styles.diaRutinaNombre}>{dia.nombre}</Text>
-        <FlatList
-          data={dia.ejercicios}
-          keyExtractor={(ejercicio: Ejercicio) => ejercicio.id.toString()}
-          renderItem={({ item: ejercicio }) => (
-            <TarjetaEjercicio ejercicio={ejercicio} onDelete={() => { }} />
-          )}
-          contentContainerStyle={styles.ejerciciosList}
-        />
-      </View>
-    );
-  };
+  const obtenerIdsEjercicios = (diaRutina: DiaRutina): number[] => {
+    const { ejerciciosDiaRutina } = diaRutina;
+    const idsEjercicios = ejerciciosDiaRutina.map(({ ejercicioId }) => ejercicioId)
+    return idsEjercicios;
+  }
 
-  const handleFollowButtonPress = async() => {
+  const getDatosEjercicio = async (ejercicioId: number) => {
+
+
     if (!token || !rutina) {
       return; // No realizar la llamada a la API si no hay un token de autenticación o si rutina es undefined
     }
-  
+
     try {
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       };
-  
+
+      const response = await routineApi.get<Ejercicio>(`/ejercicios/${ejercicioId}`, config);
+      const ejercicio = response.data;
+      if (ejercicio) {
+        // Actualizar la lista de ejercicios con el ejercicio obtenido
+        setListaEjercicios((prevLista) => [...prevLista, ejercicio]);
+      }
+
+    } catch (error) {
+      console.log('Error al obtener los datos del ejercicio:', error);
+      return null;
+    }
+  }
+
+  useEffect(() => {
+    // Mostrar los IDs y nombres de los ejercicios en cada DiaRutina
+    if (rutina && rutina.dias_rutina) {
+      rutina.dias_rutina.forEach((dia) => {
+        const idsEjercicios = obtenerIdsEjercicios(dia);
+
+        idsEjercicios.forEach(async (ejercicioId) => {
+          const ejercicio = await getDatosEjercicio(ejercicioId);
+        });
+      });
+    }
+  }, [rutina]);
+
+  const renderDiaRutina = ({ item: dia }: { item: DiaRutina }) => {
+    return (
+      <View style={styles.diaRutinaContainer}>
+        <Text style={styles.diaRutinaNombre}>{dia.nombre}</Text>
+        <FlatList
+          data={dia.ejerciciosDiaRutina}
+          keyExtractor={(ejercicio) => ejercicio.id_EjercicioRutina.toString()}
+          renderItem={({ item: ejercicio }) => {
+            // Buscar el ejercicio correspondiente en la lista de ejercicios
+            const ejercicioEncontrado = listaEjercicios.find((ej) => ej.id === ejercicio.ejercicioId);
+
+            return (
+              <View>
+                <TarjetaEjercicio ejercicio={ejercicioEncontrado as Ejercicio} onDelete={() => { }} series={ejercicio.series} repeticiones={ejercicio.repeticiones} />
+              </View>
+            );
+          }}
+          contentContainerStyle={styles.ejerciciosList}
+        />
+      </View>
+    );
+  };
+
+
+
+  const handleFollowButtonPress = async () => {
+    if (!token || !rutina) {
+      return; // No realizar la llamada a la API si no hay un token de autenticación o si rutina es undefined
+    }
+
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
       const response = await routineApi.post(`/rutinas/seguir/${rutina.id}`, config);
       setRutinasSeguidasIds(prevIds => [...prevIds, rutina.id]);
       setActualizarRutinas(true);
@@ -61,14 +117,14 @@ export const RutinaDetailsScreen = () => {
     if (!token || !rutina) {
       return; // No realizar la llamada a la API si no hay un token de autenticación o si rutina es undefined
     }
-  
+
     try {
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       };
-  
+
       const response = await routineApi.delete(`/rutinas/dejarseguir/${rutina.id}`, config);
       setRutinasSeguidasIds(prevIds => prevIds.filter(id => id !== rutina.id));
       setActualizarRutinas(true);
@@ -78,6 +134,11 @@ export const RutinaDetailsScreen = () => {
       console.log('Error al dejar de seguir la rutina:', error);
     }
   };
+
+  const handleAddDiarutina = () => {
+    console.log('Add dia rutina pressed en rutina id:',rutina?.id);
+    navigation.navigate('AddDiaRutinaScreen' as never); 
+  }
 
   return (
     <View style={styles.global}>
@@ -91,7 +152,7 @@ export const RutinaDetailsScreen = () => {
         <Text style={{ ...styles.buttonText, fontSize: 20 }}>Volver</Text>
       </TouchableOpacity>
       {rutinasSeguidasIds?.includes(rutina?.id ?? 0) ? (
-        <Text style={{ alignSelf: 'center', marginTop: 10, color:'black' }}>Ya sigues esta rutina</Text>
+        <Text style={{ alignSelf: 'center', marginTop: 10, color: 'black' }}>Ya sigues esta rutina</Text>
       ) : (
         <TouchableOpacity style={styles.seguirButton} onPress={handleFollowButtonPress}>
           <Text style={styles.seguirButtonText}>Seguir rutina</Text>
@@ -107,6 +168,17 @@ export const RutinaDetailsScreen = () => {
       <Text style={styles.rutinaField}>Descripción: {rutina?.descripcion}</Text>
       <Text style={styles.rutinaField}>Creada por: {rutina?.creador}</Text>
       <Text style={styles.rutinaField}>Puntuación media: {rutina?.puntuacion}</Text>
+      {isFromRutinasCreadas ? (
+        <View style={{ alignItems: 'center', marginTop: 20 }}>
+          <Text style={{ color: 'black' }}>Añadir nuevo día a la rutina</Text>
+
+          <TouchableOpacity style={styles.añadirDiaRutinaButton} onPress={handleAddDiarutina}>
+            <Icon name="add-outline" color='white' size={20} />
+          </TouchableOpacity>
+
+        </View>
+
+      ) : null}
 
       <FlatList
         data={rutina?.dias_rutina}
@@ -162,7 +234,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
-    color:'black',
+    color: 'black',
   },
   ejerciciosList: {
     paddingHorizontal: 10,
@@ -197,5 +269,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
 
   },
+  añadirDiaRutinaButton: {
+    height: 80,
+    width: 80,
+    backgroundColor: '#5856D6',
+    borderRadius: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+    elevation: 10,
+  }
 });
 

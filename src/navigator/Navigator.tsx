@@ -17,6 +17,10 @@ import { RutinasScreen } from '../screens/RutinasScreen';
 import { TopTabNavigatorRutinas } from './TopTabNavigatorRutinas';
 import { RutinaDetailsScreen } from '../screens/RutinaDetailsScreen';
 import { RutinasSeguidasScreen } from '../screens/RutinasSeguidasScreen';
+import { AddRutinaScreen } from '../screens/AddRutinaScreen';
+import { EditRutinaScreen } from '../screens/EditRutinaScreen';
+import { AddDiaRutinaScreen } from '../screens/AddDiaRutinaScreen';
+
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -94,6 +98,9 @@ export const Navigator = () => {
           <Stack.Screen name="EditEjercicio" component={EditEjercicio} />
           <Stack.Screen name="RutinaDetailsScreen" component={RutinaDetailsScreen} />
           <Stack.Screen name="RutinasSeguidasScreen" component={RutinasSeguidasScreen} />
+          <Stack.Screen name="AddRutinaScreen" component={AddRutinaScreen} />
+          <Stack.Screen name="EditRutinaScreen" component={EditRutinaScreen} />
+          <Stack.Screen name="AddDiaRutinaScreen" component={AddDiaRutinaScreen} />
         </>
       )}
     </Stack.Navigator>

@@ -128,7 +128,7 @@ export const UsuarioEjerciciosScreen = () => {
       <FlatList
         data={ejercicios.contenido}
         keyExtractor={(item,index) => index.toString()}
-        renderItem={({ item }) => <TarjetaEjercicio ejercicio={item} editable={true} onDelete={refreshEjercicios}/>}
+        renderItem={({ item }) => <TarjetaEjercicio ejercicio={item} width={'100%'} height={120} editable={true} onDelete={refreshEjercicios}/>}
         ListFooterComponent={
           loadingMore ? (
             <ActivityIndicator size="large" animating={loadingMore} color="blue" />

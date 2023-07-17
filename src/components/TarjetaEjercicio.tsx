@@ -13,8 +13,8 @@ import routineApi from '../api/routineApi';
 
 interface Props {
   ejercicio: Ejercicio;
-  height?: number;
-  width?: number;
+  height?: number | string;
+  width?: number | string;
   editable?: boolean;
   onDelete: () => void;
   series?: number;
@@ -29,8 +29,10 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedEjercicio, setSelectedEjercicio] = useState<Ejercicio | null>(null);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
+  const [isLoadingThumbnail, setIsLoadingThumbnail] = useState(false);
 
   const getThumbnail = useCallback(async () => {
+    setIsLoadingThumbnail(true);
     if (!token || !ejercicio) {
       return; // No realizar la llamada a la API si no hay un token de autenticación
     }
@@ -40,7 +42,7 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
           Authorization: `Bearer ${token}`,
         },
       };
-      const response = await axios.get(`http://192.168.1.42:8080/miniaturas/${ejercicio.imagen}`, {
+      const response = await axios.get(`http://192.168.1.38:8080/miniaturas/${ejercicio.imagen}`, {
         responseType: 'arraybuffer',
         ...config,
       });
@@ -52,7 +54,14 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
   }, [ejercicio, token]);
 
   useEffect(() => {
-    getThumbnail();
+    getThumbnail()
+      .then(() => {
+        setIsLoadingThumbnail(false);
+      })
+      .catch((error) => {
+        console.error(error);
+        setIsLoadingThumbnail(false);
+      });
   }, [getThumbnail]);
 
   useEffect(() => {
@@ -67,7 +76,7 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
               Authorization: `Bearer ${token}`,
             },
           };
-          const response = await axios.get(`http://192.168.1.42:8080/gifs/${selectedEjercicio?.imagen}`, {
+          const response = await axios.get(`http://192.168.1.38:8080/gifs/${selectedEjercicio?.imagen}`, {
             responseType: 'arraybuffer',
             ...config,
           });
@@ -134,7 +143,7 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
         setSelectedEjercicio(ejercicio);
       }}
       style={{
-        width: '100%',
+        width: width,
         height: 120,
         borderRadius: 20,
         flexDirection: 'row',
@@ -145,19 +154,25 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
         elevation: 3,
       }}
     >
-      <View style={{ flex: 1, flexDirection: 'row', height: '100%', alignItems: 'center' }}>
+      <View style={{ flex: 1, flexDirection: 'row', height: height, width: width, alignItems: 'center' }}>
         <View style={{ width: 80, height: 80, borderRadius: 20, marginRight: 10, marginLeft: 5 }}>
-          {thumbnailUrl && <Image source={{ uri: thumbnailUrl }} style={{ width: '100%', height: '100%', borderRadius: 20 }} />}
+          {isLoadingThumbnail ? (
+            <ActivityIndicator size="small" color="#5856D6" style={{alignSelf:'center'}}/> // Mostrar el ActivityIndicator mientras se carga la miniatura
+          ) : (
+            thumbnailUrl && (
+              <Image source={{ uri: thumbnailUrl }} style={{ width: '100%', height: '100%', borderRadius: 20 }} />
+            )
+          )}
         </View>
 
         <View style={{ flex: 1, height: '90%', justifyContent: 'center' }}>
-          <Text style={{ fontSize: 16, fontWeight: 'bold', color: 'black' }}>{ejercicio?.nombre}</Text>
-          <Text style={{ color: 'gray', fontSize: 14 }}>Grupo muscular: {ejercicio?.grupo_muscular}</Text>
-          <Text style={{ color: 'gray', fontSize: 14 }}>Dificultad: {ejercicio?.dificultad}</Text>
+          <Text style={{ fontSize: 13, fontWeight: 'bold', color: 'black' }}>{ejercicio?.nombre}</Text>
+          <Text style={{ color: 'gray', fontSize: 12 }}>Grupo muscular: {ejercicio?.grupo_muscular}</Text>
+          <Text style={{ color: 'gray', fontSize: 12 }}>Dificultad: {ejercicio?.dificultad}</Text>
           {series && repeticiones && (
             <>
-              <Text style={{ color: 'gray', fontSize: 14 }}>Series: {series}</Text>
-              <Text style={{ color: 'gray', fontSize: 14, marginBottom:6 }}>Repeticiones: {repeticiones}</Text>
+              <Text style={{ color: 'gray', fontSize: 12 }}>Series: {series}</Text>
+              <Text style={{ color: 'gray', fontSize: 12, marginBottom: 6 }}>Repeticiones: {repeticiones}</Text>
             </>
           )}
         </View>

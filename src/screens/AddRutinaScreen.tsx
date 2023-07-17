@@ -20,7 +20,7 @@ export const AddRutinaScreen = () => {
       descripcion: '',
     });
   
-    const onRegister = async () => {
+    const onAddRutina = async () => {
       const rutinaData = {
         creador: user?.username,
         nombre: nombre,
@@ -62,7 +62,7 @@ export const AddRutinaScreen = () => {
           <TextInput style={styles.input} selectionColor='white' placeholderTextColor="rgba(255,255,255,0.4)" underlineColorAndroid='white' placeholder="Descripción rutina" value={descripcion} onChangeText={(value) => onChange(value, 'descripcion')} />
         </View>
         <View style={{ alignItems: 'center' }}>
-          <TouchableOpacity activeOpacity={0.8} style={{ ...styles.button, marginBottom: 100, marginTop: 50 }} onPress={onRegister}>
+          <TouchableOpacity activeOpacity={0.8} style={{ ...styles.button, marginBottom: 100, marginTop: 50 }} onPress={onAddRutina}>
             <Text style={styles.buttonText}>Crear rutina</Text>
           </TouchableOpacity>
         </View>

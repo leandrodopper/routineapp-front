@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ContenidoRutinas, DiaRutina, Ejercicio, EjercicioDiaRutina } from '../interfaces/appInterfaces';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -10,13 +10,14 @@ import { AuthContext } from '../context/AuthContext';
 
 export const RutinaDetailsScreen = () => {
   const route = useRoute();
-  const { rutina, rutinasSeguidasIds, isFromRutinasSeguidas, isFromRutinasCreadas }: { rutina?: ContenidoRutinas, rutinasSeguidasIds?: number[], isFromRutinasSeguidas?: boolean, isFromRutinasCreadas?: boolean } = route.params || {};
-  const navigation = useNavigation();
+  const { rutina, rutinasSeguidasIds, isFromRutinasSeguidas, isFromRutinasCreadas, isFromAddEjercicioADiaRutina }: { rutina?: ContenidoRutinas, rutinasSeguidasIds?: number[], isFromRutinasSeguidas?: boolean, isFromRutinasCreadas?: boolean, isFromAddEjercicioADiaRutina?: boolean } = route.params || {};
+  const navigation = useNavigation<any>();
   const { token } = useContext(AuthContext);
   const rutinasContext = useContext(RutinasContext);
   const { setRutinasSeguidasIds, actualizarRutinas, setActualizarRutinas } = rutinasContext;
   // const { rutinasSeguidasIds: contextRutinasSeguidasIds } = rutinasContext;
   const [listaEjercicios, setListaEjercicios] = useState<Ejercicio[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
 
 
@@ -43,9 +44,10 @@ export const RutinaDetailsScreen = () => {
       const response = await routineApi.get<Ejercicio>(`/ejercicios/${ejercicioId}`, config);
       const ejercicio = response.data;
       if (ejercicio) {
-        // Actualizar la lista de ejercicios con el ejercicio obtenido
         setListaEjercicios((prevLista) => [...prevLista, ejercicio]);
+        setIsLoaded(true);
       }
+
 
     } catch (error) {
       console.log('Error al obtener los datos del ejercicio:', error);
@@ -53,8 +55,8 @@ export const RutinaDetailsScreen = () => {
     }
   }
 
+
   useEffect(() => {
-    // Mostrar los IDs y nombres de los ejercicios en cada DiaRutina
     if (rutina && rutina.dias_rutina) {
       rutina.dias_rutina.forEach((dia) => {
         const idsEjercicios = obtenerIdsEjercicios(dia);
@@ -69,7 +71,17 @@ export const RutinaDetailsScreen = () => {
   const renderDiaRutina = ({ item: dia }: { item: DiaRutina }) => {
     return (
       <View style={styles.diaRutinaContainer}>
-        <Text style={styles.diaRutinaNombre}>{dia.nombre}</Text>
+
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Text style={styles.diaRutinaNombre}>{dia.nombre}</Text>
+          {isFromRutinasCreadas && (
+            <TouchableOpacity style={styles.deleteDiaRutinaButton} onPress={() => handleBorrarDiaRutina(dia)}>
+              <Icon name="trash-outline" size={20} color="black" />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <Text style={{ marginTop: 5, color: 'black' , marginBottom:10}}>{dia.descripcion}</Text>
         <FlatList
           data={dia.ejerciciosDiaRutina}
           keyExtractor={(ejercicio) => ejercicio.id_EjercicioRutina.toString()}
@@ -79,17 +91,57 @@ export const RutinaDetailsScreen = () => {
 
             return (
               <View>
-                <TarjetaEjercicio ejercicio={ejercicioEncontrado as Ejercicio} onDelete={() => { }} series={ejercicio.series} repeticiones={ejercicio.repeticiones} />
+                <View style={{ marginTop: -15 }}>
+                  {isFromRutinasCreadas && (
+                    <TouchableOpacity
+                      style={styles.deleteEjercicioButton}
+                      onPress={() => {
+                        if (ejercicioEncontrado) {
+                          handleEliminarEjercicioDeDia(dia, ejercicio);
+                        }
+                      }}
+                    >
+                      <Icon style={{ alignSelf: 'center' }} name="close-circle-outline" size={35} color="black" />
+                    </TouchableOpacity>
+                  )}
+
+
+                  {isLoaded ? (
+                    <TarjetaEjercicio
+                      ejercicio={ejercicioEncontrado as Ejercicio}
+                      width={'100%'}
+                      height={120}
+                      series={ejercicio.series}
+                      repeticiones={ejercicio.repeticiones}
+                      onDelete={() => { }}
+                    />
+                  ) : (
+                    <View style={{ width: '100%', height: 120, justifyContent: 'center', alignItems: 'center' }}>
+                      <ActivityIndicator size="large" color="blue" /> 
+                    </View>
+                  )}
+
+
+                </View>
+
               </View>
             );
           }}
           contentContainerStyle={styles.ejerciciosList}
         />
+        {isFromRutinasCreadas && (
+          <TouchableOpacity style={styles.addEjercicioButton} onPress={() => handleaddEjercicioADiaRutina(dia, rutina as ContenidoRutinas)}>
+            <Text style={styles.addEjercicioButtonText}>Añadir ejercicio</Text>
+          </TouchableOpacity>
+        )}
       </View>
     );
   };
 
 
+  const handleaddEjercicioADiaRutina = (dia: DiaRutina, rutina: ContenidoRutinas) => {
+    navigation.navigate('AddEjercicioADiaRutinaScreen', { dia, rutina });
+  }
 
   const handleFollowButtonPress = async () => {
     if (!token || !rutina) {
@@ -135,9 +187,94 @@ export const RutinaDetailsScreen = () => {
     }
   };
 
+
   const handleAddDiarutina = () => {
-    console.log('Add dia rutina pressed en rutina id:',rutina?.id);
-    navigation.navigate('AddDiaRutinaScreen' as never); 
+    navigation.navigate('AddDiaRutinaScreen', { rutina });
+  }
+
+  const handleEditarRutina = () => {
+    navigation.navigate('EditRutinaScreen', { rutina });
+  }
+
+  const handleEliminarRutina = () => {
+    
+    Alert.alert('Confirmación', `Vas a eliminar una rutina, ¿estás seguro?`,
+      [
+        {
+          text: 'Aceptar', onPress: async () => {
+            if (!token || !rutina) {
+              return; 
+            }
+            try {
+              const config = {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              };
+              console.log("Vamos a borrar la rutina con id: ",rutina?.id)
+              const response = await routineApi.delete(`/rutinas/${rutina.id}`, config);
+              navigation.goBack();
+            } catch (error) {
+              console.log('Error al borrar  la rutina:', error);
+            }
+          }
+        },
+        { text: 'Cancelar', onPress: () => { } }
+      ]);
+  }
+
+  const handleBorrarDiaRutina = (dia: DiaRutina) => {
+    Alert.alert('Confirmación', `Vas a eliminar un día (id:${dia.id}) de la rutina, ¿estás seguro?`,
+      [
+        {
+          text: 'Aceptar', onPress: async () => {
+            console.log("Borrar dia rutina pressed");
+            if (!token || !rutina) {
+              return; // No realizar la llamada a la API si no hay un token de autenticación o si rutina es undefined
+            }
+            try {
+              const config = {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              };
+
+              const response = await routineApi.delete(`/diasrutina/${dia.id}`, config);
+              const response2 = await routineApi.get<ContenidoRutinas>(`/rutinas/${rutina.id}`, config);
+              navigation.navigate('RutinaDetailsScreen', { rutina: response2.data, isFromRutinasCreadas: true });
+            } catch (error) {
+              console.log('Error al borrar el dia de la rutina:', error);
+            }
+          }
+        },
+        { text: 'Cancelar', onPress: () => { } }
+      ]);
+  }
+
+  const handleEliminarEjercicioDeDia = async (dia: DiaRutina, ejercicioDiaRutina: EjercicioDiaRutina) => {
+    Alert.alert('Confirmación', `Vas a eliminar un ejercicio de la rutina, ¿estás seguro?`,
+      [
+        {
+          text: 'Aceptar', onPress: async () => {
+            if (!token || !rutina) {
+              return; // No realizar la llamada a la API si no hay un token de autenticación o si rutina es undefined
+            }
+            try {
+              const config = {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              };
+              const response = await routineApi.delete(`/diasrutina/${dia.id}/removeEjercicio/${ejercicioDiaRutina.id_EjercicioRutina}`, config);
+              const response2 = await routineApi.get<ContenidoRutinas>(`/rutinas/${rutina.id}`, config);
+              navigation.navigate('RutinaDetailsScreen', { rutina: response2.data, isFromRutinasCreadas: true });
+            } catch (error) {
+              console.log('Error al eliminar el ejercicio del dia:', error);
+            }
+          }
+        },
+        { text: 'Cancelar', onPress: () => { } }
+      ]);
   }
 
   return (
@@ -151,14 +288,17 @@ export const RutinaDetailsScreen = () => {
         <Icon name="arrow-back-outline" size={25} color="#5856D6" />
         <Text style={{ ...styles.buttonText, fontSize: 20 }}>Volver</Text>
       </TouchableOpacity>
-      {rutinasSeguidasIds?.includes(rutina?.id ?? 0) ? (
+      {!isFromRutinasCreadas && rutinasSeguidasIds?.includes(rutina?.id ?? 0) ? (
         <Text style={{ alignSelf: 'center', marginTop: 10, color: 'black' }}>Ya sigues esta rutina</Text>
       ) : (
-        <TouchableOpacity style={styles.seguirButton} onPress={handleFollowButtonPress}>
-          <Text style={styles.seguirButtonText}>Seguir rutina</Text>
-        </TouchableOpacity>
+        !isFromRutinasCreadas && (
+          <TouchableOpacity style={styles.seguirButton} onPress={handleFollowButtonPress}>
+            <Text style={styles.seguirButtonText}>Seguir rutina</Text>
+          </TouchableOpacity>
+        )
+
       )}
-      {isFromRutinasSeguidas ? (
+      {!isFromRutinasCreadas && isFromRutinasSeguidas ? (
         <TouchableOpacity onPress={handleUnfollowButtonPress} style={styles.unfollowButton}>
           <Text style={styles.unfollowButtonText}>Dejar de seguir</Text>
         </TouchableOpacity>
@@ -170,6 +310,15 @@ export const RutinaDetailsScreen = () => {
       <Text style={styles.rutinaField}>Puntuación media: {rutina?.puntuacion}</Text>
       {isFromRutinasCreadas ? (
         <View style={{ alignItems: 'center', marginTop: 20 }}>
+          <View style={{ flexDirection: 'row', marginBottom: 10 }}>
+            <TouchableOpacity style={styles.seguirButton} onPress={handleEditarRutina}>
+              <Text style={styles.seguirButtonText}>Editar rutina</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.unfollowButton} onPress={handleEliminarRutina}>
+              <Text style={styles.seguirButtonText}>Eliminar rutina</Text>
+            </TouchableOpacity>
+          </View>
+
           <Text style={{ color: 'black' }}>Añadir nuevo día a la rutina</Text>
 
           <TouchableOpacity style={styles.añadirDiaRutinaButton} onPress={handleAddDiarutina}>
@@ -197,6 +346,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     alignSelf: 'center',
     marginTop: 10,
+    color: 'black'
   },
   button: {
     backgroundColor: 'white',
@@ -217,15 +367,16 @@ const styles = StyleSheet.create({
   global: {
     padding: 11,
     flex: 1,
+    backgroundColor: '#EDEDED'
   },
   rutinaField: {
     color: 'black',
-    fontSize: 15,
-    padding: 10,
+    fontSize: 13,
     marginTop: 10,
+    alignSelf: 'center'
   },
   diasRutinaList: {
-    paddingBottom: 20,
+    paddingBottom: 15,
   },
   diaRutinaContainer: {
     marginBottom: 20,
@@ -270,14 +421,50 @@ const styles = StyleSheet.create({
 
   },
   añadirDiaRutinaButton: {
-    height: 80,
-    width: 80,
+    height: 50,
+    width: 100,
     backgroundColor: '#5856D6',
     borderRadius: 100,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 5,
     elevation: 10,
+    marginBottom: 10,
+  },
+  addEjercicioButton: {
+    backgroundColor: '#5856D6',
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignSelf: 'flex-start',
+    marginBottom: 10,
+    marginTop: 4,
+  },
+  addEjercicioButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  deleteDiaRutinaButton: {
+    height: 50,
+    width: 80,
+    backgroundColor: 'rgba(255, 0, 0, 0.5)',
+    borderRadius: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderColor: 'red',
+    borderWidth: 2,
+    marginLeft: 10,
+  },
+  deleteEjercicioButton: {
+    backgroundColor: 'rgba(255, 0, 0, 0.5)',
+    width: 50,
+    height: 50,
+    borderRadius: 100,
+    justifyContent: 'center',
+    top: 20,
+    zIndex: 10,
   }
 });
 

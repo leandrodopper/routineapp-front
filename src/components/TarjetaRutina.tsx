@@ -1,7 +1,7 @@
 import React, { memo, useContext, useState } from 'react';
 import { ContenidoRutinas, Rutina } from '../interfaces/appInterfaces';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { StyleSheet, TouchableOpacity, View, Text, Modal, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, Text, Modal, TouchableWithoutFeedback, Alert } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import { RutinasContext } from '../context/RutinasContext';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -23,7 +23,7 @@ export const TarjetaRutina = memo(({ rutina, isFromRutinasSeguidas, isFromRutina
 
 
     const handleRutinaDetails = () => {
-        navigation.navigate('RutinaDetailsScreen', { rutina, rutinasSeguidasIds, isFromRutinasSeguidas , isFromRutinasCreadas});
+        navigation.navigate('RutinaDetailsScreen', { rutina, rutinasSeguidasIds, isFromRutinasSeguidas, isFromRutinasCreadas });
     };
 
     const handleFollowButtonPress = async () => {
@@ -56,16 +56,15 @@ export const TarjetaRutina = memo(({ rutina, isFromRutinasSeguidas, isFromRutina
     };
 
     const handleEditarPress = () => {
-        console.log('Pressed editar')
+        navigation.navigate('EditRutinaScreen', { rutina });
     };
 
-    const handleEliminarPress = () => {
-        console.log('Pressed eliminar')
-    };
+
+
 
     const handleUnfollowButtonPress = async () => {
         if (!token) {
-            return; // No realizar la llamada a la API si no hay un token de autenticación
+            return;
         }
         try {
             const config = {
@@ -111,9 +110,6 @@ export const TarjetaRutina = memo(({ rutina, isFromRutinasSeguidas, isFromRutina
                                     <View style={styles.buttonContainer}>
                                         <TouchableOpacity style={styles.seguirButton} onPress={handleEditarPress}>
                                             <Text style={styles.cerrarButtonText}>Editar</Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity style={styles.seguirButton} onPress={handleEliminarPress}>
-                                            <Text style={styles.cerrarButtonText}>Eliminar</Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity style={styles.cerrarButton} onPress={handleCloseModal}>
                                             <Text style={styles.cerrarButtonText}>Cerrar</Text>

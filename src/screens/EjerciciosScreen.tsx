@@ -37,10 +37,10 @@ export const EjerciciosScreen = () => {
           Authorization: `Bearer ${token}`,
         },
       };
-      const response = await routineApi.get('/ejercicios/filtrarNombre', {
+      const response = await routineApi.get('/ejercicios/filtrarKeyword', {
         ...config,
         params: {
-          nombre: nombreEjercicio,
+          keyword: nombreEjercicio,
           pageNo: reset ? 0 : page, // Utilizar el número de página actual en la llamada a la API si no es un reset
           pageSize: pageSize,
           sortBy: 'id',
@@ -118,7 +118,7 @@ export const EjerciciosScreen = () => {
       <FlatList
         data={ejercicios.contenido}
         keyExtractor={(item,index) => index.toString()}
-        renderItem={({ item }) => <TarjetaEjercicio ejercicio={item} editable={false} onDelete={refreshEjercicios}/>}
+        renderItem={({ item }) => <TarjetaEjercicio ejercicio={item} width={'100%'} height={120} editable={false} onDelete={refreshEjercicios}/>}
         ListFooterComponent={
           loadingMore ? (
             <ActivityIndicator size="large" animating={loadingMore} color="blue" />

@@ -20,6 +20,7 @@ import { RutinasSeguidasScreen } from '../screens/RutinasSeguidasScreen';
 import { AddRutinaScreen } from '../screens/AddRutinaScreen';
 import { EditRutinaScreen } from '../screens/EditRutinaScreen';
 import { AddDiaRutinaScreen } from '../screens/AddDiaRutinaScreen';
+import { AddEjercicioADiaRutinaScreen } from '../screens/AddEjercicioADiaRutinaScreen';
 
 
 const Stack = createStackNavigator();
@@ -101,6 +102,8 @@ export const Navigator = () => {
           <Stack.Screen name="AddRutinaScreen" component={AddRutinaScreen} />
           <Stack.Screen name="EditRutinaScreen" component={EditRutinaScreen} />
           <Stack.Screen name="AddDiaRutinaScreen" component={AddDiaRutinaScreen} />
+          <Stack.Screen name="AddEjercicioADiaRutinaScreen" component={AddEjercicioADiaRutinaScreen} />
+
         </>
       )}
     </Stack.Navigator>

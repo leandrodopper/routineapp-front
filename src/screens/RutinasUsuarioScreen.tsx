@@ -6,7 +6,7 @@ import { AuthContext } from '../context/AuthContext';
 import { Rutina } from '../interfaces/appInterfaces';
 import { TarjetaRutina } from '../components/TarjetaRutina';
 import { RutinasContext } from '../context/RutinasContext';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useIsFocused, useNavigation } from '@react-navigation/native';
 
 export const RutinasUsuarioScreen = () => {
   const [rutinas, setRutinas] = useState<Rutina[]>([]);
@@ -15,7 +15,7 @@ export const RutinasUsuarioScreen = () => {
   const navigation = useNavigation();
   const { rutinasSeguidasIds, setRutinasSeguidasIds, actualizarRutinas, setActualizarRutinas } = useContext(RutinasContext);
   useEffect(() => {
-    const fetchRutinasSeguidas = async () => {
+    const fetchRutinasCreadas = async () => {
       // console.log({actualizarRutinas})
       try {
         const config = {
@@ -30,7 +30,7 @@ export const RutinasUsuarioScreen = () => {
       }
     };
 
-    fetchRutinasSeguidas();
+    fetchRutinasCreadas();
   }, [actualizarRutinas, isFocused]);
 
   useEffect(() => {
@@ -40,24 +40,15 @@ export const RutinasUsuarioScreen = () => {
     }
   }, [isFocused]);
 
-  const handleNavegarPressed=()=>{
-    navigation.navigate('EditRutinaScreen' as never);
-  }
 
   return (
     <View style={{ alignItems: 'center' }}>
-      <Text style={{textAlign:'center', fontWeight:'300', marginTop:10, color:'black'}}>En esta pantalla aparecerán las rutinas que has creado. Desde aquí podrás editar o eliminar tus rutinas</Text>
-      <TouchableOpacity
-        style={{ backgroundColor: 'red', padding: 10, marginTop: 20 }}
-        onPress={handleNavegarPressed}
-      >
-        <Text style={{ color: 'white', fontWeight: 'bold' }}>Navegar</Text>
-      </TouchableOpacity>
+      <Text style={{ textAlign: 'center', fontWeight: '300', marginTop: 10, color: 'black' }}>En esta pantalla aparecerán las rutinas que has creado. Desde aquí podrás editar o eliminar tus rutinas así como gestionar los dias de tu rutina</Text>
       <FlatList
         showsVerticalScrollIndicator={false}
         data={rutinas}
         renderItem={({ item }) => (
-          <TarjetaRutina rutina={item} isFromRutinasSeguidas={false} isFromRutinasCreadas={true}/>
+          <TarjetaRutina rutina={item} isFromRutinasSeguidas={false} isFromRutinasCreadas={true} />
         )}
         keyExtractor={(item) => item.id.toString()}
         style={{
@@ -65,7 +56,7 @@ export const RutinasUsuarioScreen = () => {
           marginTop: 10,
         }}
         ListEmptyComponent={() => (
-          <Text style={{ textAlign: 'center' , color:'black', fontWeight:'300'}}>
+          <Text style={{ textAlign: 'center', color: 'black', fontWeight: '300' }}>
             No has creado ninguna rutina. Crea una rutina personalizada en la pestaña 'Rutinas'
           </Text>
         )}

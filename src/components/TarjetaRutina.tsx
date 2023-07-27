@@ -94,7 +94,7 @@ export const TarjetaRutina = memo(({ rutina, isFromRutinasSeguidas, isFromRutina
                 <Text style={styles.tarjetaText}>Creada por: {rutina.creador}</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
                     <Icon name='star' size={12} color='#5856D6' style={{ alignSelf: 'center' }} />
-                    <Text style={{ ...styles.tarjetaText }}>Puntuación: {rutina.puntuacion}</Text>
+                    <Text style={{ ...styles.tarjetaText }}>Puntuación: {rutina.puntuacion.toFixed(1)}</Text>
                 </View>
 
             </TouchableOpacity>

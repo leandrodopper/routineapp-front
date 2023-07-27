@@ -295,11 +295,14 @@ export const AddEjercicioADiaRutinaScreen = ({ route }: AddEjercicioADiaRutinaSc
                             </View>
                         </View>
                     )}
-                    ListFooterComponent={
-                        loadingMore ? (
-                            <ActivityIndicator size="large" animating={loadingMore} color="blue" />
-                        ) : null
-                    }
+                    ListFooterComponent={() => (
+                        <>
+                            {loadingMore ? (
+                                <ActivityIndicator size="large" animating={loadingMore} color="blue" />
+                            ) : null}
+                            <View style={{ height: 200 }} /> 
+                        </>
+                    )}
                     onEndReached={handleEndReached}
                     onEndReachedThreshold={0.5}
                     windowSize={3}
@@ -399,9 +402,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         marginTop: 20,
         marginLeft: 14,
-      },
-      buttonTextVolver: {
+    },
+    buttonTextVolver: {
         color: '#5856D6',
         textAlign: 'center',
-      },
+    },
 });

@@ -18,7 +18,7 @@ export const RutinaDetailsScreen = () => {
   // const { rutinasSeguidasIds: contextRutinasSeguidasIds } = rutinasContext;
   const [listaEjercicios, setListaEjercicios] = useState<Ejercicio[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
-
+  const [puntuacion, setPuntuacion] = useState(0);
 
 
   const obtenerIdsEjercicios = (diaRutina: DiaRutina): number[] => {
@@ -81,7 +81,7 @@ export const RutinaDetailsScreen = () => {
           )}
         </View>
 
-        <Text style={{ marginTop: 5, color: 'black' , marginBottom:10}}>{dia.descripcion}</Text>
+        <Text style={{ marginTop: 5, color: 'black', marginBottom: 10 }}>{dia.descripcion}</Text>
         <FlatList
           data={dia.ejerciciosDiaRutina}
           keyExtractor={(ejercicio) => ejercicio.id_EjercicioRutina.toString()}
@@ -117,7 +117,7 @@ export const RutinaDetailsScreen = () => {
                     />
                   ) : (
                     <View style={{ width: '100%', height: 120, justifyContent: 'center', alignItems: 'center' }}>
-                      <ActivityIndicator size="large" color="blue" /> 
+                      <ActivityIndicator size="large" color="blue" />
                     </View>
                   )}
 
@@ -197,13 +197,13 @@ export const RutinaDetailsScreen = () => {
   }
 
   const handleEliminarRutina = () => {
-    
+
     Alert.alert('Confirmación', `Vas a eliminar una rutina, ¿estás seguro?`,
       [
         {
           text: 'Aceptar', onPress: async () => {
             if (!token || !rutina) {
-              return; 
+              return;
             }
             try {
               const config = {
@@ -211,7 +211,7 @@ export const RutinaDetailsScreen = () => {
                   Authorization: `Bearer ${token}`,
                 },
               };
-              console.log("Vamos a borrar la rutina con id: ",rutina?.id)
+              console.log("Vamos a borrar la rutina con id: ", rutina?.id)
               const response = await routineApi.delete(`/rutinas/${rutina.id}`, config);
               navigation.goBack();
             } catch (error) {
@@ -277,6 +277,38 @@ export const RutinaDetailsScreen = () => {
       ]);
   }
 
+  const handlePuntuacion = (numeroEstrellas: number) => {
+    setPuntuacion(numeroEstrellas);
+    Alert.alert('Confirmación', `Quieres puntuar la rutina ${rutina?.nombre} con ${numeroEstrellas} estrellas?`,
+      [
+        {
+          text: 'Aceptar', onPress: async () => {
+            if (!token || !rutina) {
+              return; // No realizar la llamada a la API si no hay un token de autenticación o si rutina es undefined
+            }
+            try {
+              const config = {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                }
+              };
+              const response = await routineApi.post(`/rutinas/puntuarRutina/${rutina.id}?puntuacion=${numeroEstrellas}`, config);
+            } catch (error) {
+              console.log('Error al puntuar la rutina:', error);
+            }
+          }
+        },
+        { text: 'Cancelar', onPress: () => { } }
+      ]);
+  }
+  // useEffect(() => {
+  //   console.log(puntuacion);
+  // }, [puntuacion])
+
+  const handleCommentPress = () => {
+    navigation.navigate('CommentsScreen', {rutina});
+  }
+
   return (
     <View style={styles.global}>
 
@@ -305,9 +337,35 @@ export const RutinaDetailsScreen = () => {
       ) : null}
 
       <Text style={styles.title}>{rutina?.nombre}</Text>
-      <Text style={styles.rutinaField}>Descripción: {rutina?.descripcion}</Text>
-      <Text style={styles.rutinaField}>Creada por: {rutina?.creador}</Text>
-      <Text style={styles.rutinaField}>Puntuación media: {rutina?.puntuacion}</Text>
+      <View>
+        <Text style={styles.rutinaField}>Descripción: {rutina?.descripcion}</Text>
+        <Text style={styles.rutinaField}>Creada por: {rutina?.creador}</Text>
+        <Text style={styles.rutinaField}>Puntuación media: {rutina?.puntuacion.toFixed(1)}</Text>
+      </View>
+      <TouchableOpacity 
+      style={styles.commentButton}
+      onPress={handleCommentPress}
+      >
+        <Icon name='chatbubble-ellipses-outline' size={50} color={'#5856D6'} />
+      </TouchableOpacity>
+
+      {isFromRutinasSeguidas ? (
+        <View style={styles.puntuacionContainer}>
+          {[1, 2, 3, 4, 5].map((numeroEstrellas) => (
+            <TouchableOpacity
+              key={numeroEstrellas}
+              onPress={() => handlePuntuacion(numeroEstrellas)}
+              style={styles.estrella}
+            >
+              <Icon
+                name={numeroEstrellas <= puntuacion ? 'star' : 'star-outline'}
+                size={25}
+                color={numeroEstrellas <= puntuacion ? '#5856D6' : 'grey'}
+              />
+            </TouchableOpacity>
+          ))}
+        </View>
+      ) : null}
       {isFromRutinasCreadas ? (
         <View style={{ alignItems: 'center', marginTop: 20 }}>
           <View style={{ flexDirection: 'row', marginBottom: 10 }}>
@@ -465,6 +523,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     top: 20,
     zIndex: 10,
+  },
+  puntuacionContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  estrella: {
+    marginHorizontal: 5,
+  },
+  commentButton: {
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    borderRadius: 100,
+    width: 80,
+    height: 80,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    position:'absolute',
+    bottom:20,
+    right:20,
+    zIndex:21,
   }
 });
-

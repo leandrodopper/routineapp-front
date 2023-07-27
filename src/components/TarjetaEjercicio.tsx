@@ -34,7 +34,7 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
   const getThumbnail = useCallback(async () => {
     setIsLoadingThumbnail(true);
     if (!token || !ejercicio) {
-      return; // No realizar la llamada a la API si no hay un token de autenticación
+      return; 
     }
     try {
       const config = {
@@ -42,7 +42,7 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
           Authorization: `Bearer ${token}`,
         },
       };
-      const response = await axios.get(`http://192.168.1.38:8080/miniaturas/${ejercicio.imagen}`, {
+      const response = await axios.get(`http://192.168.1.41:8080/miniaturas/${ejercicio.imagen}`, {
         responseType: 'arraybuffer',
         ...config,
       });
@@ -66,7 +66,7 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
 
   useEffect(() => {
     if (!token) {
-      return; // No realizar la llamada a la API si no hay un token de autenticación
+      return; 
     }
     if (modalVisible && selectedEjercicio) {
       const fetchGifUrl = async () => {
@@ -76,7 +76,7 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
               Authorization: `Bearer ${token}`,
             },
           };
-          const response = await axios.get(`http://192.168.1.38:8080/gifs/${selectedEjercicio?.imagen}`, {
+          const response = await axios.get(`http://192.168.1.41:8080/gifs/${selectedEjercicio?.imagen}`, {
             responseType: 'arraybuffer',
             ...config,
           });

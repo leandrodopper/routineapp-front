@@ -107,6 +107,27 @@ export interface Rutina {
 }
 
 
+export interface GetComentariosRutinaResponse {
+    contenido:      ContenidoComentarios[];
+    numPagina:      number;
+    tamPagina:      number;
+    totalElementos: number;
+    totalPaginas:   number;
+    ultima:         boolean;
+}
+
+export interface ContenidoComentarios {
+    id:                 number;
+    usuario:            string;
+    contenido:          string;
+    fecha:              string;
+    comentarioPadre_id: null | number;
+    respuestas:         ContenidoComentarios[];
+    rutina_id:          number;
+}
+
+
+
 
 
 

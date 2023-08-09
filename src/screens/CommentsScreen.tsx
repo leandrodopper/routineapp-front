@@ -1,11 +1,11 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, TextInput, Keyboard } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, Keyboard, Alert } from 'react-native';
 import { TarjetaComentario } from '../components/TarjetaComentario';
 import { RouteProp, useNavigation } from '@react-navigation/native';
 import { ContenidoComentarios, ContenidoRutinas, GetComentariosRutinaResponse } from '../interfaces/appInterfaces';
 import { AuthContext } from '../context/AuthContext';
 import routineApi from '../api/routineApi';
-import { FlatList } from 'react-native-gesture-handler';
+import { FlatList, ScrollView } from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 type CommentsScreenProps = {
@@ -16,13 +16,15 @@ export const CommentsScreen = ({ route }: CommentsScreenProps) => {
     const { rutina } = route.params;
     const navigation = useNavigation<any>();
 
-    const { token } = useContext(AuthContext);
+    const { token, user } = useContext(AuthContext);
     const [comentarios, setComentarios] = useState<ContenidoComentarios[]>([]);
     const [nuevoComentario, setNuevoComentario] = useState<string>('');
     const [mostrarTextInput, setMostrarTextInput] = useState(false);
     const [mostrarNuevoComentario, setMostrarNuevoComentario] = useState(false);
     const [textoRespuesta, setTextoRespuesta] = useState<string>('');
     const [comentarioPadreId, setComentarioPadreId] = useState<number | null>(null);
+    const [expandedComments, setExpandedComments] = useState<number[]>([]);
+
 
     const fetchData = async () => {
         if (!token) {
@@ -51,7 +53,6 @@ export const CommentsScreen = ({ route }: CommentsScreenProps) => {
         fetchData();
     }, []);
 
-    const [expandedComments, setExpandedComments] = useState<number[]>([]);
 
     const toggleExpandedComment = (comentarioId: number) => {
         setExpandedComments((prev) => {
@@ -65,17 +66,23 @@ export const CommentsScreen = ({ route }: CommentsScreenProps) => {
 
     const renderComentarioRecursivo = (comentario: ContenidoComentarios, nivel: number, isMainComment: boolean) => {
         const isExpanded = expandedComments.includes(comentario.id);
+        const username = user?.username;
         return (
             <View key={comentario.id} style={[styles.comentarioContainer, { marginLeft: nivel * 5 }]}>
-                <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-                    <TarjetaComentario comentario={comentario} isMainComment={isMainComment} />
 
-                    {/* Nuevo TouchableOpacity para responder el comentario */}
-                    <TouchableOpacity style={styles.responderButton} onPress={()=>handleResponder(comentario.id)}>
-                        <Text style={styles.responderText}>Responder</Text>
+                <TarjetaComentario comentario={comentario} isMainComment={isMainComment} />
+
+                <View style={{ flexDirection: 'row', marginBottom:5,marginTop:5, flex:1, justifyContent:'flex-end' }}>
+                    {username === comentario.usuario && (
+                        <TouchableOpacity style={styles.responderButton} onPress={() => handleBorrar(comentario.id)}>
+                            <Text style={styles.responderText}>Borrar</Text>
+                        </TouchableOpacity>
+                    )}
+
+                    <TouchableOpacity style={styles.responderButton} onPress={() => handleResponder(comentario.id)}>
+                        <Text style={{...styles.responderText, marginLeft:10}}>Responder</Text>
                     </TouchableOpacity>
                 </View>
-
                 {comentario.respuestas.length > 0 && (
                     <TouchableOpacity style={styles.responderButton} onPress={() => toggleExpandedComment(comentario.id)}>
                         <Icon name={isExpanded ? 'chevron-up' : 'chevron-down'} size={18} color="gray" />
@@ -116,15 +123,15 @@ export const CommentsScreen = ({ route }: CommentsScreenProps) => {
         }
     };
 
-    const handleResponder = (comentariopadreId:number) => {
+    const handleResponder = (comentariopadreId: number) => {
         setComentarioPadreId(comentariopadreId);
-         setTextoRespuesta('');
-         setMostrarTextInput(true);
-         setMostrarNuevoComentario(false);
-        
+        setTextoRespuesta('');
+        setMostrarTextInput(true);
+        setMostrarNuevoComentario(false);
+
     }
 
-    const handlePublicarRespuesta = async () =>{
+    const handlePublicarRespuesta = async () => {
         if (!token) {
             return;
         }
@@ -153,6 +160,31 @@ export const CommentsScreen = ({ route }: CommentsScreenProps) => {
         }
     }
 
+    const handleBorrar = async (comentarioId: number) => {
+        Alert.alert('Confirmación', `Vas a eliminar un comentario ${comentarioId} de la rutina , ¿estás seguro?`,
+            [
+                {
+                    text: 'Aceptar', onPress: async () => {
+                        if (!token || !rutina) {
+                            return; // No realizar la llamada a la API si no hay un token de autenticación o si rutina es undefined
+                        }
+                        try {
+                            const config = {
+                                headers: {
+                                    Authorization: `Bearer ${token}`,
+                                },
+                            };
+                            const response = await routineApi.delete(`/comentarios/${comentarioId}`, config);
+                            fetchData();
+                        } catch (error) {
+                            console.log('Error al eliminar el comentario:', error);
+                        }
+                    }
+                },
+                { text: 'Cancelar', onPress: () => { } }
+            ]);
+    }
+
     return (
         <View style={styles.container}>
             <TouchableOpacity
@@ -172,7 +204,7 @@ export const CommentsScreen = ({ route }: CommentsScreenProps) => {
                 showsVerticalScrollIndicator={false}
             />
 
-            
+
             {!mostrarTextInput && (
                 <View style={styles.nuevoComentarioContainer}>
                     <TextInput
@@ -191,7 +223,7 @@ export const CommentsScreen = ({ route }: CommentsScreenProps) => {
                 </View>
             )}
 
-            
+
             {mostrarTextInput && (
                 <View style={styles.nuevoComentarioContainer}>
                     <TextInput
@@ -199,7 +231,7 @@ export const CommentsScreen = ({ route }: CommentsScreenProps) => {
                         value={textoRespuesta}
                         onChangeText={setTextoRespuesta}
                         placeholder="Escribe tu respuesta"
-                        autoFocus={true} 
+                        autoFocus={true}
                     />
                     <TouchableOpacity
                         style={[styles.enviarButton, textoRespuesta.trim() ? {} : styles.enviarButtonDisabled]}
@@ -217,12 +249,12 @@ export const CommentsScreen = ({ route }: CommentsScreenProps) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f0f0f0',
+        backgroundColor: '#F5F5F5',
         paddingVertical: 10,
         paddingHorizontal: 20,
     },
     title: {
-        color: '#333',
+        color: '#5856D6',
         fontSize: 24,
         alignSelf: 'center',
         marginTop: 10,
@@ -278,7 +310,7 @@ const styles = StyleSheet.create({
     },
     enviarButtonDisabled: {
         backgroundColor: 'gray',
-    },button: {
+    }, button: {
         backgroundColor: 'white',
         paddingVertical: 10,
         borderRadius: 100,

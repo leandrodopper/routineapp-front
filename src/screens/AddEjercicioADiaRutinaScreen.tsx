@@ -145,6 +145,17 @@ export const AddEjercicioADiaRutinaScreen = ({ route }: AddEjercicioADiaRutinaSc
 
     const handleAceptEjercicios = () => {
         if (newEjercicioData.series && newEjercicioData.repeticiones) {
+
+            const series = parseInt(newEjercicioData.series); 
+            const repes = parseInt(newEjercicioData.repeticiones);
+            if (series > 6) {
+                Alert.alert('Error', 'El número de series no puede ser mayor a 6', [{ text: 'Aceptar', onPress: () => { } }]);
+                return; 
+            }
+            if (isNaN(series) || isNaN(repes) || series <= 0 || repes <= 0) {
+                Alert.alert('Error', 'Ingresa valores válidos para series y repeticiones', [{ text: 'Aceptar', onPress: () => { } }]);
+                return;
+            }
             const nuevoEjercicio: EjercicioData = {
                 id: newEjercicioData.id,
                 series: newEjercicioData.series,
@@ -186,7 +197,7 @@ export const AddEjercicioADiaRutinaScreen = ({ route }: AddEjercicioADiaRutinaSc
             const response2 = await routineApi.get<ContenidoRutinas>(`/rutinas/${rutina.id}`, config);
             navigation.navigate('RutinaDetailsScreen', { rutina: response2.data, isFromRutinasCreadas: true });
 
-            console.log(response.data);
+
         } catch (error) {
 
             console.error(error);
@@ -300,7 +311,7 @@ export const AddEjercicioADiaRutinaScreen = ({ route }: AddEjercicioADiaRutinaSc
                             {loadingMore ? (
                                 <ActivityIndicator size="large" animating={loadingMore} color="blue" />
                             ) : null}
-                            <View style={{ height: 200 }} /> 
+                            <View style={{ height: 200 }} />
                         </>
                     )}
                     onEndReached={handleEndReached}

@@ -34,7 +34,7 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
   const getThumbnail = useCallback(async () => {
     setIsLoadingThumbnail(true);
     if (!token || !ejercicio) {
-      return; 
+      return;
     }
     try {
       const config = {
@@ -42,7 +42,7 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
           Authorization: `Bearer ${token}`,
         },
       };
-      const response = await axios.get(`http://192.168.1.41:8080/miniaturas/${ejercicio.imagen}`, {
+      const response = await axios.get(`http://192.168.1.38:8080/miniaturas/${ejercicio.imagen}`, {
         responseType: 'arraybuffer',
         ...config,
       });
@@ -66,7 +66,7 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
 
   useEffect(() => {
     if (!token) {
-      return; 
+      return;
     }
     if (modalVisible && selectedEjercicio) {
       const fetchGifUrl = async () => {
@@ -76,7 +76,7 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
               Authorization: `Bearer ${token}`,
             },
           };
-          const response = await axios.get(`http://192.168.1.41:8080/gifs/${selectedEjercicio?.imagen}`, {
+          const response = await axios.get(`http://192.168.1.38:8080/gifs/${selectedEjercicio?.imagen}`, {
             responseType: 'arraybuffer',
             ...config,
           });
@@ -151,13 +151,12 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
         alignItems: 'center',
         marginTop: 10,
         marginBottom: 10,
-        elevation: 3,
       }}
     >
       <View style={{ flex: 1, flexDirection: 'row', height: height, width: width, alignItems: 'center' }}>
         <View style={{ width: 80, height: 80, borderRadius: 20, marginRight: 10, marginLeft: 5 }}>
           {isLoadingThumbnail ? (
-            <ActivityIndicator size="small" color="#5856D6" style={{alignSelf:'center'}}/> // Mostrar el ActivityIndicator mientras se carga la miniatura
+            <ActivityIndicator size="small" color="#5856D6" style={{ alignSelf: 'center' }} /> // Mostrar el ActivityIndicator mientras se carga la miniatura
           ) : (
             thumbnailUrl && (
               <Image source={{ uri: thumbnailUrl }} style={{ width: '100%', height: '100%', borderRadius: 20 }} />
@@ -169,12 +168,13 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
           <Text style={{ fontSize: 13, fontWeight: 'bold', color: 'black' }}>{ejercicio?.nombre}</Text>
           <Text style={{ color: 'gray', fontSize: 12 }}>Grupo muscular: {ejercicio?.grupo_muscular}</Text>
           <Text style={{ color: 'gray', fontSize: 12 }}>Dificultad: {ejercicio?.dificultad}</Text>
-          {series && repeticiones && (
-            <>
-              <Text style={{ color: 'gray', fontSize: 12 }}>Series: {series}</Text>
-              <Text style={{ color: 'gray', fontSize: 12, marginBottom: 6 }}>Repeticiones: {repeticiones}</Text>
-            </>
-          )}
+          {series ? (
+            <Text style={{ color: 'gray', fontSize: 12 }}>Series: {series}</Text>
+          ) : null}
+
+          {repeticiones ? (
+            <Text style={{ color: 'gray', fontSize: 12, marginBottom: 6 }}>Repeticiones: {repeticiones}</Text>
+          ) : null}
         </View>
       </View>
       <Modal

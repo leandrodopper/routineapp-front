@@ -126,6 +126,26 @@ export interface ContenidoComentarios {
     rutina_id:          number;
 }
 
+export interface PostEntreno {
+    diaRutinaId:          number;
+    duracionMinutos:      number;
+    ejerciciosRealizados: EjerciciosRealizado[];
+}
+
+export interface EjerciciosRealizado {
+    ejercicioId:            number;
+    nivelEsfuerzoPercibido: number;
+    seriesRealizadas:       SeriesRealizada[];
+}
+
+export interface SeriesRealizada {
+    numeroSerie:            number;
+    repeticionesRealizadas: number;
+    objetivoCumplido:       boolean;
+    pesoUtilizado:          number;
+}
+
+
 
 
 

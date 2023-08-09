@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ContenidoRutinas, DiaRutina, Ejercicio, EjercicioDiaRutina } from '../interfaces/appInterfaces';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -15,10 +15,12 @@ export const RutinaDetailsScreen = () => {
   const { token } = useContext(AuthContext);
   const rutinasContext = useContext(RutinasContext);
   const { setRutinasSeguidasIds, actualizarRutinas, setActualizarRutinas } = rutinasContext;
-  // const { rutinasSeguidasIds: contextRutinasSeguidasIds } = rutinasContext;
   const [listaEjercicios, setListaEjercicios] = useState<Ejercicio[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [puntuacion, setPuntuacion] = useState(0);
+  const [showCountdownModal, setshowCountdownModal] = useState(false);
+  const [countdown, setCountdown] = useState(3);
+
 
 
   const obtenerIdsEjercicios = (diaRutina: DiaRutina): number[] => {
@@ -69,11 +71,28 @@ export const RutinaDetailsScreen = () => {
   }, [rutina]);
 
   const renderDiaRutina = ({ item: dia }: { item: DiaRutina }) => {
+
+    const tieneEjercicios = dia.ejerciciosDiaRutina.length > 0;
+
     return (
       <View style={styles.diaRutinaContainer}>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Text style={styles.diaRutinaNombre}>{dia.nombre}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+            <Text style={{ ...styles.diaRutinaNombre, flex: 1 }}>{dia.nombre}</Text>
+            {tieneEjercicios && isFromRutinasSeguidas && (
+              <TouchableOpacity style={styles.empezarEntrenoButton} onPress={() =>startCountdown(dia)}>
+                <Text style={styles.empezarEntrenoButtonText}>Empezar entreno</Text>
+              </TouchableOpacity>
+            )}
+            <Modal visible={showCountdownModal} transparent>
+              <View style={styles.modalContainer}>
+                <Text style={{...styles.countdownText, fontSize:24}}>Cargando ejercicios! Ánimo!</Text>
+                <Text style={styles.countdownText}>{countdown}</Text>
+              </View>
+            </Modal>
+          </View>
+
           {isFromRutinasCreadas && (
             <TouchableOpacity style={styles.deleteDiaRutinaButton} onPress={() => handleBorrarDiaRutina(dia)}>
               <Icon name="trash-outline" size={20} color="black" />
@@ -81,12 +100,14 @@ export const RutinaDetailsScreen = () => {
           )}
         </View>
 
+
+
         <Text style={{ marginTop: 5, color: 'black', marginBottom: 10 }}>{dia.descripcion}</Text>
         <FlatList
           data={dia.ejerciciosDiaRutina}
           keyExtractor={(ejercicio) => ejercicio.id_EjercicioRutina.toString()}
+          showsVerticalScrollIndicator={false}
           renderItem={({ item: ejercicio }) => {
-            // Buscar el ejercicio correspondiente en la lista de ejercicios
             const ejercicioEncontrado = listaEjercicios.find((ej) => ej.id === ejercicio.ejercicioId);
 
             return (
@@ -129,6 +150,8 @@ export const RutinaDetailsScreen = () => {
           }}
           contentContainerStyle={styles.ejerciciosList}
         />
+
+
         {isFromRutinasCreadas && (
           <TouchableOpacity style={styles.addEjercicioButton} onPress={() => handleaddEjercicioADiaRutina(dia, rutina as ContenidoRutinas)}>
             <Text style={styles.addEjercicioButtonText}>Añadir ejercicio</Text>
@@ -228,7 +251,6 @@ export const RutinaDetailsScreen = () => {
       [
         {
           text: 'Aceptar', onPress: async () => {
-            console.log("Borrar dia rutina pressed");
             if (!token || !rutina) {
               return; // No realizar la llamada a la API si no hay un token de autenticación o si rutina es undefined
             }
@@ -279,7 +301,7 @@ export const RutinaDetailsScreen = () => {
 
   const handlePuntuacion = (numeroEstrellas: number) => {
     setPuntuacion(numeroEstrellas);
-    Alert.alert('Confirmación', `Quieres puntuar la rutina ${rutina?.nombre} con ${numeroEstrellas} estrellas?`,
+    Alert.alert('Confirmación', `Quieres puntuar la rutina ${rutina?.nombre} con ${numeroEstrellas} estrellas? (Para ver la puntuacion media actualizada, por favor, selecciona de nuevo la rutina)`,
       [
         {
           text: 'Aceptar', onPress: async () => {
@@ -301,13 +323,27 @@ export const RutinaDetailsScreen = () => {
         { text: 'Cancelar', onPress: () => { } }
       ]);
   }
-  // useEffect(() => {
-  //   console.log(puntuacion);
-  // }, [puntuacion])
 
   const handleCommentPress = () => {
-    navigation.navigate('CommentsScreen', {rutina});
+    navigation.navigate('CommentsScreen', { rutina });
   }
+
+  const handleEmpezarEntreno = (dia: DiaRutina) => {
+    navigation.navigate('EntrenamientoScreen', { dia })
+  }
+
+  const startCountdown = (dia:DiaRutina) => {
+    setshowCountdownModal(true);
+    setCountdown(3);
+    const interval = setInterval(() => {
+      setCountdown(prevCountdown => prevCountdown - 1);
+    }, 1000);
+    setTimeout(() => {
+      clearInterval(interval);
+      setshowCountdownModal(false);
+      handleEmpezarEntreno(dia); // Navegar a la pantalla de entrenamiento
+    }, 3000);
+  };
 
   return (
     <View style={styles.global}>
@@ -337,14 +373,14 @@ export const RutinaDetailsScreen = () => {
       ) : null}
 
       <Text style={styles.title}>{rutina?.nombre}</Text>
-      <View>
+      <View style={{marginBottom:10}}>
         <Text style={styles.rutinaField}>Descripción: {rutina?.descripcion}</Text>
         <Text style={styles.rutinaField}>Creada por: {rutina?.creador}</Text>
         <Text style={styles.rutinaField}>Puntuación media: {rutina?.puntuacion.toFixed(1)}</Text>
       </View>
-      <TouchableOpacity 
-      style={styles.commentButton}
-      onPress={handleCommentPress}
+      <TouchableOpacity
+        style={styles.commentButton}
+        onPress={handleCommentPress}
       >
         <Icon name='chatbubble-ellipses-outline' size={50} color={'#5856D6'} />
       </TouchableOpacity>
@@ -390,6 +426,7 @@ export const RutinaDetailsScreen = () => {
       <FlatList
         data={rutina?.dias_rutina}
         keyExtractor={(dia: DiaRutina) => dia.id.toString()}
+        showsVerticalScrollIndicator={false}
         renderItem={renderDiaRutina}
         contentContainerStyle={styles.diasRutinaList}
       />
@@ -529,6 +566,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 10,
+    marginBottom:10,
   },
   estrella: {
     marginHorizontal: 5,
@@ -541,9 +579,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
-    position:'absolute',
-    bottom:20,
-    right:20,
-    zIndex:21,
-  }
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    zIndex: 21,
+  },
+  empezarEntrenoButton: {
+    backgroundColor: 'green',
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignSelf: 'center',
+    marginTop: 10,
+  },
+  empezarEntrenoButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+    textAlign: 'center',
+
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  countdownText: {
+    fontSize: 48,
+    color: 'white',
+  },
 });

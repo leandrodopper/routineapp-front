@@ -6,9 +6,8 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import routineApi from '../api/routineApi';
 import { TarjetaEjercicio } from '../components/TarjetaEjercicio';
 import { AuthContext } from '../context/AuthContext';
-import { BarChart } from 'react-native-chart-kit';
+import { BarChart, PieChart } from 'react-native-chart-kit';
 import { ScrollView } from 'react-native-gesture-handler';
-import { Background } from '../components/Background';
 
 type EntrenamientoScreenProps = {
     route: RouteProp<{ params: { dia: DiaRutina } }, 'params'>;
@@ -23,6 +22,8 @@ type RPEDescriptions = {
 };
 
 const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
+
 
 export const EntrenamientoScreen = ({ route }: EntrenamientoScreenProps) => {
 
@@ -34,7 +35,9 @@ export const EntrenamientoScreen = ({ route }: EntrenamientoScreenProps) => {
     const allExerciseIds = ejerciciosDiaRutina.map(exercise => exercise.ejercicioId);
     const [exerciseDetails, setExerciseDetails] = useState<Ejercicio[]>([]);
     const [showModal, setShowModal] = useState(false);
-    const [esfuerzoUser, setEsfuerzoUser] = useState<number | null>(null);
+
+    const [esfuerzoPorEjercicio, setEsfuerzoPorEjercicio] = useState<{ [key: number]: number | null }>({});
+
     const [pesos, setPesos] = useState<string[][]>(
         Array(ejerciciosDiaRutina.length).fill([]).map(() => Array(0).fill(''))
     );
@@ -76,12 +79,30 @@ export const EntrenamientoScreen = ({ route }: EntrenamientoScreenProps) => {
         10: 'Muy Máximo',
     };
 
+    const [totalSeriesCompletadas, setTotalSeriesCompletadas] = useState(0);
+    const [totalRepeticionesCompletadas, setTotalRepeticionesCompletadas] = useState(0);
+    const [totalPesoLevantado, setTotalPesoLevantado] = useState(0);
+    const [currentExerciseIndex, setCurrentExerciseIndex] = useState<number | null>(null);
+
+    const [chartData, setChartData] = useState([
+        { name: 'Series completadas', value: 0, color: '#66FF66' },
+        { name: 'No completadas', value: 0, color: 'red' },
+    ]);
+
+    const totalEjercicios = ejerciciosDiaRutina.length;
+    const totalRPE = Object.values(esfuerzoPorEjercicio)
+        .map(rpe => typeof rpe === 'number' ? rpe : 0) // Convierte valores no numéricos en 0
+        .reduce((total, rpe) => total + rpe, 0);
+    const rpePromedio = totalEjercicios !== 0 ? totalRPE / totalEjercicios : 0;
 
 
-    const handleWeightChange = (exerciseIndex: number, serieIndex: number, weight: number) => {
-        if (weight >= 0) {
+
+
+    const handleWeightChange = (exerciseIndex: number, serieIndex: number, weight: string) => {
+        const weightValue = weight.replace(',', '.');
+        if (weightValue !== '') {
             const newPesos = [...pesos];
-            newPesos[exerciseIndex][serieIndex] = weight.toString(); // Convertir el peso a cadena
+            newPesos[exerciseIndex][serieIndex] = weightValue;
             setPesos(newPesos);
         } else {
             Alert.alert('Valor inválido', 'El peso no puede ser negativo.');
@@ -110,6 +131,9 @@ export const EntrenamientoScreen = ({ route }: EntrenamientoScreenProps) => {
     useEffect(() => {
         const fetchExerciseDetails = async () => {
             const exercisePromises = allExerciseIds.map(async exerciseId => {
+                if (!token) {
+                    return;
+                }
                 try {
                     const response = await routineApi.get<Ejercicio>(`/ejercicios/${exerciseId}`);
                     return response.data;
@@ -170,7 +194,7 @@ export const EntrenamientoScreen = ({ route }: EntrenamientoScreenProps) => {
 
             return {
                 ejercicioId: ejercicio.ejercicioId,
-                nivelEsfuerzoPercibido: esfuerzoUser !== null ? esfuerzoUser : 0,
+                nivelEsfuerzoPercibido: esfuerzoPorEjercicio[exerciseIndex] !== null ? esfuerzoPorEjercicio[exerciseIndex] : 0,
                 seriesRealizadas,
             };
         }).filter(ejercicioRealizado => ejercicioRealizado.seriesRealizadas.length > 0);
@@ -180,8 +204,43 @@ export const EntrenamientoScreen = ({ route }: EntrenamientoScreenProps) => {
             duracionMinutos: Math.floor(timeElapsed / 60),
             ejerciciosRealizados: ejerciciosRealizados,
         };
+        ejerciciosRealizados.forEach((ejercicioRealizado) => {
+            ejercicioRealizado.seriesRealizadas.forEach((serieRealizada) => {
+                if (serieRealizada.objetivoCumplido) {
+                    // Actualizar las variables de estado directamente
+                    setTotalSeriesCompletadas(prevTotal => prevTotal + 1);
+                    setTotalRepeticionesCompletadas(prevTotal => prevTotal + serieRealizada.repeticionesRealizadas);
+                    setTotalPesoLevantado(prevTotal => prevTotal + serieRealizada.pesoUtilizado);
+                }
+            });
+        });
         setTotalTimeElapsed(timeElapsed);
         handleAddEntreno(postEntrenoData);
+
+        const totalSeries = ejerciciosRealizados.reduce(
+            (total, ejercicioRealizado) =>
+                total + ejercicioRealizado.seriesRealizadas.length,
+            0
+        );
+
+        const totalSeriesCompletadas = ejerciciosRealizados.reduce(
+            (total, ejercicioRealizado) =>
+                total +
+                ejercicioRealizado.seriesRealizadas.filter(
+                    serieRealizada => serieRealizada.objetivoCumplido
+                ).length,
+            0
+        );
+
+        const totalSeriesNoCompletadas = totalSeries - totalSeriesCompletadas;
+
+        const chartData = [
+            { name: 'Series completadas', value: totalSeriesCompletadas, color: '#00CC00', legendFontSize: 10, legendFontColor: "#7F7F7F" },
+            { name: 'No completadas', value: totalSeriesNoCompletadas, color: 'red', legendFontSize: 10, legendFontColor: "#7F7F7F" },
+        ];
+
+        setChartData(chartData);
+
     };
 
     const handleAddEntreno = async (postEntrenoData: PostEntreno) => {
@@ -213,11 +272,11 @@ export const EntrenamientoScreen = ({ route }: EntrenamientoScreenProps) => {
         ToastAndroid.show('Entrenamiento finalizado. Los datos válidos han sido registrados', ToastAndroid.SHORT);
     };
 
-    const handlePuntuarRPE = (puntuacionRPE: number) => {
-        setShowRPEScreen(false);
-        console.log("Puntuacion RPE:", { puntuacionRPE });
-        setEsfuerzoUser(puntuacionRPE);
-    }
+    const handlePuntuarRPE = (exerciseIndex: number, puntuacionRPE: number) => {
+        const updatedEsfuerzo = { ...esfuerzoPorEjercicio };
+        updatedEsfuerzo[exerciseIndex] = puntuacionRPE;
+        setEsfuerzoPorEjercicio(updatedEsfuerzo);
+    };
 
 
     return (
@@ -250,14 +309,14 @@ export const EntrenamientoScreen = ({ route }: EntrenamientoScreenProps) => {
                                         <Text style={styles.serieText}>Serie {serieIndex + 1}</Text>
                                         <TextInput
                                             style={styles.repeticionesInput}
-                                            keyboardType="numeric"
+                                            keyboardType="decimal-pad"
                                             placeholder="Peso"
                                             value={
                                                 pesos[index] &&
                                                 pesos[index][serieIndex]
                                             }
                                             onChangeText={(weight) =>
-                                                handleWeightChange(index, serieIndex, weight ? Number(weight) : 0)
+                                                handleWeightChange(index, serieIndex, weight)
                                             }
                                         />
                                         <TextInput
@@ -299,11 +358,15 @@ export const EntrenamientoScreen = ({ route }: EntrenamientoScreenProps) => {
                                     </View>
                                 ))}
                             <Text style={styles.esfuerzoUserText}>
-                                Nivel de esfuerzo percibido: {esfuerzoUser !== null ? esfuerzoUser : 'No establecido'}
+                                Nivel de esfuerzo percibido: {esfuerzoPorEjercicio[index] !== undefined ? esfuerzoPorEjercicio[index] : 'No establecido'}
                             </Text>
                             <TouchableOpacity
                                 style={styles.RPEButton}
-                                onPress={() => setShowRPEScreen(true)}
+                                onPress={() => {
+                                    const exerciseIndex = index;
+                                    setShowRPEScreen(true);
+                                    setCurrentExerciseIndex(exerciseIndex);
+                                }}
                             >
                                 <Text style={styles.RPEButtonText}>Puntuar RPE</Text>
                             </TouchableOpacity>
@@ -330,40 +393,29 @@ export const EntrenamientoScreen = ({ route }: EntrenamientoScreenProps) => {
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>Estadísticas del entrenamiento:</Text>
                         <Text>Tiempo total de entrenamiento: {formatTime(totalTimeElapsed)}</Text>
-                        {/* Otras estadísticas que quieras mostrar */}
-                        <BarChart
-                            data={{
-                                labels: ['Sesión 1', 'Sesión 2', 'Sesión 3', 'Sesión 4', 'Sesión 5'], // Ejemplo de etiquetas de sesiones
-                                datasets: [
-                                    {
-                                        data: [120, 150, 140, 160, 130], // Ejemplo de datos de peso levantado en cada sesión
-                                    },
-                                ],
-                            }}
-                            width={'100%'} // Ancho ajustado al 100% del contenido del modal
-                            height={200}
-                            yAxisLabel="kg"
-                            yAxisSuffix=" kg"
-                            chartConfig={{
-                                backgroundColor: '#e26a00',
-                                backgroundGradientFrom: '#fb8c00',
-                                backgroundGradientTo: '#ffa726',
-                                decimalPlaces: 2,
-                                color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-                                style: {
-                                    borderRadius: 16,
-                                },
-                            }}
-                            style={{
-                                marginVertical: 8,
-                                borderRadius: 16,
-                            }}
-                        />
+                        <Text>Total de repeticiones completadas: {totalRepeticionesCompletadas}</Text>
+                        <Text>Total de peso levantado: {totalPesoLevantado}</Text>
+                        <Text>Total de series completadas: {totalSeriesCompletadas}</Text>
+                        <View style={{ marginBottom: 20 }}>
+                            <PieChart
+                                data={chartData}
+                                width={300} // Aumenta el ancho
+                                height={150} // Aumenta la altura
+                                accessor="value"
+                                backgroundColor="transparent"
+                                chartConfig={{
+                                    color: (opacity = 1) => `rgba(102, 255, 102, ${opacity})`,
+                                }}
+                                paddingLeft='-10' // Asegura un poco de espacio a la izquierda para el texto
+                            />
+                            <Text>Esfuerzo RPE promedio: {rpePromedio.toFixed(2)}</Text>
+
+                        </View>
                         <TouchableOpacity
                             style={styles.closeButton}
                             onPress={handleCloseModal}
                         >
-                            <Text>Cerrar</Text>
+                            <Text style={{ color: 'white', alignSelf: 'center' }}>Finalizar</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -383,7 +435,12 @@ export const EntrenamientoScreen = ({ route }: EntrenamientoScreenProps) => {
                                 <TouchableOpacity
                                     key={rpeValue}
                                     style={styles.rpeButton}
-                                    onPress={() => handlePuntuarRPE(parseInt(rpeValue))}
+                                    onPress={() => {
+                                        if (currentExerciseIndex !== null) {
+                                            handlePuntuarRPE(currentExerciseIndex, parseInt(rpeValue));
+                                            setShowRPEScreen(false); // Opcionalmente, cerrar el modal aquí
+                                        }
+                                    }}
                                 >
                                     <View
                                         style={[
@@ -507,7 +564,7 @@ const styles = StyleSheet.create({
         padding: 10,
         backgroundColor: '#5856D6',
         borderRadius: 5,
-        width: 65,
+        width: 75,
         alignSelf: 'center',
     },
     modalContainer: {
@@ -579,4 +636,5 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginTop: 10,
     },
+
 });

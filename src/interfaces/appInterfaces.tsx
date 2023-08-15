@@ -134,7 +134,7 @@ export interface PostEntreno {
 
 export interface EjerciciosRealizado {
     ejercicioId:            number;
-    nivelEsfuerzoPercibido: number;
+    nivelEsfuerzoPercibido: number | null;
     seriesRealizadas:       SeriesRealizada[];
 }
 

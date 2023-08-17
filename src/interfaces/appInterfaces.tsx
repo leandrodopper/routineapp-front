@@ -146,6 +146,14 @@ export interface SeriesRealizada {
 }
 
 
+export interface GetTiemposResponse {
+    maximo:   number;
+    minimo:   number;
+    promedio: number;
+}
+
+
+
 
 
 

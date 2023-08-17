@@ -23,6 +23,7 @@ import { AddDiaRutinaScreen } from '../screens/AddDiaRutinaScreen';
 import { AddEjercicioADiaRutinaScreen } from '../screens/AddEjercicioADiaRutinaScreen';
 import { CommentsScreen } from '../screens/CommentsScreen';
 import { EntrenamientoScreen } from '../screens/EntrenamientoScreen';
+import { EstadisticasScreen } from '../screens/EstadisticasScreen';
 
 
 const Stack = createStackNavigator();
@@ -83,6 +84,12 @@ export const Navigator = () => {
                         <Icon name='bookmark-outline' size={30} color={focused ? 'white' : 'black'} />
                       ),
                     }} />
+                  <Tab.Screen name="EstadisticasScreen" component={EstadisticasScreen}
+                    options={{
+                      tabBarIcon: ({ focused }) => (
+                        <Icon name='stats-chart-outline' size={30} color={focused ? 'white' : 'black'} />
+                      ),
+                    }} />
                   <Tab.Screen name="EjerciciosScreen" component={TopTabNavigator}
                     options={{
                       tabBarIcon: ({ focused }) => (
@@ -91,7 +98,7 @@ export const Navigator = () => {
                     }} />
                 </Tab.Navigator>
               )}
-              
+
             </Stack.Screen>
           )
       }

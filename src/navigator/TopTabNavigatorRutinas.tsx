@@ -24,7 +24,7 @@ export const TopTabNavigatorRutinas = () => {
     <RutinasContext.Provider value={rutinasContextValue}>
       <Tab.Navigator>
         <Tab.Screen name="Siguiendo" component={RutinasSeguidasScreen} />
-        <Tab.Screen name="Rutinas" component={RutinasScreen} />
+        <Tab.Screen name="Rutinas App" component={RutinasScreen} />
         <Tab.Screen name="Tus rutinas" component={RutinasUsuarioScreen} />
       </Tab.Navigator>
     </RutinasContext.Provider>

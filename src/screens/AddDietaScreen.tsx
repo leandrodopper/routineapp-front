@@ -8,24 +8,21 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { loginStyles } from '../theme/loginTheme';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-export const AddRutinaScreen = () => {
+export const AddDietaScreen = () => {
     const { user, token } = useContext(AuthContext);
-    const [rutinaCreada, setRutinaCreada] = useState(false);
+    const [dietaCreada, setDietaCreada] = useState(false);
   
     const navigation = useNavigation();
   
-    const { nombre, descripcion, onChange } = useForm({
+    const { nombre, onChange } = useForm({
       creador: '',
       nombre: '',
-      descripcion: '',
     });
   
-    const onAddRutina = async () => {
-      const rutinaData = {
+    const onAddDieta = async () => {
+      const dietaData = {
         creador: user?.username,
         nombre: nombre,
-        descripcion: descripcion,
-        dias_rutina: [],
       }
   
       try {
@@ -34,9 +31,9 @@ export const AddRutinaScreen = () => {
                 Authorization: `Bearer ${token}`,
             },
         };
-        const response = await routineApi.post('/rutinas', rutinaData, config);
-        setRutinaCreada(true);
-        Alert.alert('Éxito', 'La rutina se ha creado correctamente');
+        const response = await routineApi.post('/dietas/guardar', dietaData, config);
+        setDietaCreada(true);
+        Alert.alert('Éxito', 'La dieta se ha creado correctamente');
         navigation.goBack();
   
       } catch (error) {
@@ -49,27 +46,25 @@ export const AddRutinaScreen = () => {
         <View style={loginStyles.title}>
           <TouchableOpacity
             style={styles.button}
-            onPress={() => navigation.navigate('RutinasScreen' as never)}
+            onPress={() => navigation.navigate('DietasScreen' as never)}
             activeOpacity={0.8}
           >
             <Icon name='arrow-back-outline' size={25} color='white'/>
             <Text style={{...styles.buttonText, fontSize:20}}>Volver</Text>
           </TouchableOpacity>
-          <Text style={{ ...loginStyles.title, }}>Nueva rutina personalizada</Text>
-          <Text style={loginStyles.label}>Nombre de la rutina:</Text>
-          <TextInput style={styles.input} selectionColor='white' placeholderTextColor="rgba(255,255,255,0.4)" underlineColorAndroid='white' placeholder="Nombre rutina" value={nombre} onChangeText={(value) => onChange(value, 'nombre')} />
-          <Text style={loginStyles.label}>Descripción:</Text>
-          <TextInput style={styles.input} selectionColor='white' placeholderTextColor="rgba(255,255,255,0.4)" underlineColorAndroid='white' placeholder="Descripción rutina" value={descripcion} onChangeText={(value) => onChange(value, 'descripcion')} />
+          <Text style={{ ...loginStyles.title, }}>Nueva dieta</Text>
+          <Text style={loginStyles.label}>Nombre de la dieta:</Text>
+          <TextInput style={styles.input} selectionColor='white' placeholderTextColor="rgba(255,255,255,0.4)" underlineColorAndroid='white' placeholder="Nombre dieta" value={nombre} onChangeText={(value) => onChange(value, 'nombre')} />
         </View>
         <View style={{ alignItems: 'center' }}>
-          <TouchableOpacity activeOpacity={0.8} style={{ ...styles.button, marginBottom: 100, marginTop: 50 }} onPress={onAddRutina}>
-            <Text style={styles.buttonText}>Crear rutina</Text>
+          <TouchableOpacity activeOpacity={0.8} style={{ ...styles.button, marginBottom: 100, marginTop: 50 }} onPress={onAddDieta}>
+            <Text style={styles.buttonText}>Crear dieta</Text>
           </TouchableOpacity>
         </View>
   
-        {rutinaCreada && (
+        {dietaCreada && (
         <View style={styles.avisoContainer}>
-          <Text style={styles.avisoText}>La rutina se ha creado correctamente</Text>
+          <Text style={styles.avisoText}>La dieta se ha creado correctamente</Text>
         </View>
       )}
       </KeyboardAwareScrollView>

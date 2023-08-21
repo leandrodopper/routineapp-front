@@ -13,7 +13,6 @@ import Icon  from 'react-native-vector-icons/Ionicons';
 export const AddEjercicioScreen = () => {
 
   const { user } = useContext(AuthContext);
-  const [ejercicioCreado, setEjercicioCreado] = useState(false);
 
   const navigation = useNavigation();
 
@@ -38,9 +37,8 @@ export const AddEjercicioScreen = () => {
 
     try {
       const response = await routineApi.post('/ejercicios', ejercicioData);
-      setEjercicioCreado(true);
       Alert.alert('Éxito', 'El ejercicio se ha creado correctamente');
-      navigation.navigate('EjerciciosScreen' as never);
+      navigation.goBack();
 
     } catch (error) {
       console.log(error);
@@ -52,7 +50,7 @@ export const AddEjercicioScreen = () => {
       <View style={loginStyles.title}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate('EjerciciosScreen' as never)}
+          onPress={() => navigation.goBack()}
           activeOpacity={0.8}
         >
           <Icon name='arrow-back-outline' size={25} color='white'/>
@@ -74,11 +72,6 @@ export const AddEjercicioScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {ejercicioCreado && (
-      <View style={styles.avisoContainer}>
-        <Text style={styles.avisoText}>El ejercicio se ha creado correctamente</Text>
-      </View>
-    )}
     </KeyboardAwareScrollView>
   )
 }

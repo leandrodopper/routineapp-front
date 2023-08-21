@@ -152,6 +152,29 @@ export interface GetTiemposResponse {
     promedio: number;
 }
 
+export interface GetDietasResponse {
+    id:        number;
+    nombre:    string;
+    creadorId: number;
+    usernameCreador : string;
+    comidas:   Comida[];
+}
+
+export interface Comida {
+    id:        number;
+    nombre:    string;
+    dietaId:   number;
+    alimentos: Alimento[];
+}
+
+export interface Alimento {
+    id:       number;
+    nombre:   string;
+    cantidad: number;
+    comidaId: number;
+}
+
+
 
 
 

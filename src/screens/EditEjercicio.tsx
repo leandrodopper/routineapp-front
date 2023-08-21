@@ -16,7 +16,6 @@ export const EditEjercicio = () => {
   const navigation = useNavigation();
 
   const { user } = useContext(AuthContext);
-  const [ejercicioEditado, setEjercicioEditado] = useState(false);
 
   const { nombre_creador, nombre, descripcion, grupo_muscular, imagen, dificultad, onChange } = useForm({
     nombre_creador: ejercicio?.username_creador || '',
@@ -27,7 +26,7 @@ export const EditEjercicio = () => {
     dificultad: ejercicio?.dificultad || '',
   });
   const handleBack = () =>{
-    navigation.navigate('EjerciciosScreen' as never);
+    navigation.goBack();
   }
 
   const onEdit = async () => {
@@ -42,9 +41,8 @@ export const EditEjercicio = () => {
 
      try {
        const response = await routineApi.put(`/ejercicios/${ejercicio?.id}`, ejercicioData);
-       setEjercicioEditado(true);
        Alert.alert('Éxito', 'El ejercicio se ha modificado correctamente');
-       navigation.navigate('EjerciciosScreen' as never);
+       navigation.goBack();
 
      } catch (error) {
        console.log(error);
@@ -56,7 +54,7 @@ export const EditEjercicio = () => {
     <View style={loginStyles.title}>
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate('EjerciciosScreen' as never)}
+        onPress={handleBack}
         activeOpacity={0.8}
       >
         <Icon name='arrow-back-outline' size={25} color='white'/>
@@ -78,11 +76,7 @@ export const EditEjercicio = () => {
       </TouchableOpacity>
     </View>
 
-    {ejercicioEditado && (
-    <View style={styles.avisoContainer}>
-      <Text style={styles.avisoText}>El ejercicio se ha modificado correctamente</Text>
-    </View>
-  )}
+    
   </KeyboardAwareScrollView>
   );
 };

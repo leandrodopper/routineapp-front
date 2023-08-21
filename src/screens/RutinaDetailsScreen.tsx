@@ -314,7 +314,8 @@ export const RutinaDetailsScreen = () => {
                   Authorization: `Bearer ${token}`,
                 }
               };
-              const response = await routineApi.post(`/rutinas/puntuarRutina/${rutina.id}?puntuacion=${numeroEstrellas}`, config);
+              const response = await routineApi.post<ContenidoRutinas>(`/rutinas/puntuarRutina/${rutina.id}?puntuacion=${numeroEstrellas}`, config);
+              
             } catch (error) {
               console.log('Error al puntuar la rutina:', error);
             }

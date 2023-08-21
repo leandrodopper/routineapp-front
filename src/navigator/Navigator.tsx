@@ -5,7 +5,6 @@ import { RegisterScreen } from '../screens/RegisterScreen';
 import { ProtectedScreen } from '../screens/ProtectedScreen';
 import { AuthContext } from '../context/AuthContext';
 import { LoadingScreen } from '../screens/LoadingScreen';
-import { HomeScreen } from '../screens/HomeScreen';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { EjerciciosScreen } from '../screens/EjerciciosScreen';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -24,6 +23,17 @@ import { AddEjercicioADiaRutinaScreen } from '../screens/AddEjercicioADiaRutinaS
 import { CommentsScreen } from '../screens/CommentsScreen';
 import { EntrenamientoScreen } from '../screens/EntrenamientoScreen';
 import { EstadisticasScreen } from '../screens/EstadisticasScreen';
+import { DietasScreen } from '../screens/DietasScreen';
+import { DietaDetailsScreen } from '../screens/DietaDetailsScreen';
+import { AddDietaScreen } from '../screens/AddDietaScreen';
+import { AddComidaScreen } from '../screens/AddComidaScreen';
+import { AddAlimentoScreen } from '../screens/AddAlimentoScreen';
+import { EditDietaScreen } from '../screens/EditDietaScreen';
+import { TabBar } from 'react-native-tab-view';
+import { EditUserScreen } from '../screens/EditUserScreen';
+import { EditPassScreen } from '../screens/EditPassScreen';
+
+
 
 
 const Stack = createStackNavigator();
@@ -70,30 +80,36 @@ export const Navigator = () => {
                     fontSize: 12,
                   },
                 }}>
-                  <Tab.Screen name="HomeScreen"
-                    component={HomeScreen}
-                    options={{
-                      tabBarIcon: ({ focused }) => (
-                        <Icon name='home-outline' size={30} color={focused ? 'white' : 'black'} />
-                      ),
-                    }} />
-                  <Tab.Screen name="ProtectedScreen" component={ProtectedScreen} />
-                  <Tab.Screen name="RutinasScreen" component={TopTabNavigatorRutinas}
+                  
+                  <Tab.Screen name="Perfil" component={ProtectedScreen} 
+                  options={{
+                    tabBarIcon: ({ focused }) => (
+                      <Icon name='person-outline' size={30} color={focused ? 'white' : 'black'} />
+                    ),
+                  }}/>
+                  <Tab.Screen name="Rutinas" component={TopTabNavigatorRutinas}
                     options={{
                       tabBarIcon: ({ focused }) => (
                         <Icon name='bookmark-outline' size={30} color={focused ? 'white' : 'black'} />
                       ),
                     }} />
-                  <Tab.Screen name="EstadisticasScreen" component={EstadisticasScreen}
+                  <Tab.Screen name="Estadisticas" component={EstadisticasScreen}
                     options={{
                       tabBarIcon: ({ focused }) => (
                         <Icon name='stats-chart-outline' size={30} color={focused ? 'white' : 'black'} />
                       ),
                     }} />
-                  <Tab.Screen name="EjerciciosScreen" component={TopTabNavigator}
+                  <Tab.Screen name="Ejercicios" component={TopTabNavigator}
                     options={{
                       tabBarIcon: ({ focused }) => (
                         <Icon name='barbell-outline' size={30} color={focused ? 'white' : 'black'} />
+                      ),
+                    }} />
+                    <Tab.Screen name="Dietas"
+                    component={DietasScreen}
+                    options={{
+                      tabBarIcon: ({ focused }) => (
+                        <Icon name='document-text-outline' size={30} color={focused ? 'white' : 'black'} />
                       ),
                     }} />
                 </Tab.Navigator>
@@ -114,7 +130,13 @@ export const Navigator = () => {
           <Stack.Screen name="AddEjercicioADiaRutinaScreen" component={AddEjercicioADiaRutinaScreen} />
           <Stack.Screen name="CommentsScreen" component={CommentsScreen} />
           <Stack.Screen name="EntrenamientoScreen" component={EntrenamientoScreen} />
-
+          <Stack.Screen name="DietaDetailsScreen" component={DietaDetailsScreen} />
+          <Stack.Screen name="AddDietaScreen" component={AddDietaScreen} />
+          <Stack.Screen name="AddComidaScreen" component={AddComidaScreen} />
+          <Stack.Screen name="AddAlimentoScreen" component={AddAlimentoScreen} />
+          <Stack.Screen name="EditDietaScreen" component={EditDietaScreen} />
+          <Stack.Screen name="EditUserScreen" component={EditUserScreen} />
+          <Stack.Screen name="EditPassScreen" component={EditPassScreen} />
         </>
       )}
     </Stack.Navigator>

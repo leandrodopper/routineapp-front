@@ -42,7 +42,7 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
           Authorization: `Bearer ${token}`,
         },
       };
-      const response = await axios.get(`http://192.168.1.38:8080/miniaturas/${ejercicio.imagen}`, {
+      const response = await axios.get(`http://192.168.1.39:8080/miniaturas/${ejercicio.imagen}`, {
         responseType: 'arraybuffer',
         ...config,
       });
@@ -76,7 +76,7 @@ export const TarjetaEjercicio = memo(({ ejercicio, height = 420, width = 300, ed
               Authorization: `Bearer ${token}`,
             },
           };
-          const response = await axios.get(`http://192.168.1.38:8080/gifs/${selectedEjercicio?.imagen}`, {
+          const response = await axios.get(`http://192.168.1.39:8080/gifs/${selectedEjercicio?.imagen}`, {
             responseType: 'arraybuffer',
             ...config,
           });

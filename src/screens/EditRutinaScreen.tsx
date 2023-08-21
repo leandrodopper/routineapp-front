@@ -18,7 +18,7 @@ export const EditRutinaScreen = ({ route }: EditRutinaScreenProps) => {
   const { user, token } = useContext(AuthContext);
   const [rutinaCreada, setRutinaCreada] = useState(false);
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
 
   const { nombre, descripcion, onChange } = useForm({
     creador: '',
@@ -44,7 +44,8 @@ export const EditRutinaScreen = ({ route }: EditRutinaScreenProps) => {
       //Falta añadir en servidor actualizar rutina
       setRutinaCreada(true);
       Alert.alert('Éxito', 'La rutina se ha modificado correctamente');
-      navigation.navigate('RutinasScreen' as never);
+      navigation.navigate('RutinaDetailsScreen', { rutina:response.data, isFromRutinasCreadas:true});
+
 
     } catch (error) {
       console.log(error);

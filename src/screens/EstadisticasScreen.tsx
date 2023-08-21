@@ -194,7 +194,7 @@ export const EstadisticasScreen = () => {
                 <>
                     <Picker
                         selectedValue={selectedStat}
-                        onValueChange={(itemValue, itemIndex) => setSelectedStat(itemValue)}
+                        onValueChange={(itemValue) => setSelectedStat(itemValue)}
                         style={styles.dropdown}
                         itemStyle={{...styles.dropdownItem, color:'black'}}
                     >
@@ -417,7 +417,7 @@ export const EstadisticasScreen = () => {
                 </>
 
             ) : (
-                <View>
+                <View style={{alignItems:'center'}}>
                     <Icon name="alert-circle-outline" size={64} color="#FF6B6B" style={styles.icon} />
                     <TouchableOpacity activeOpacity={0.7} style={styles.messageContainer}>
                         <Text style={styles.messageText}>
@@ -450,11 +450,14 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#5856D6',
         maxWidth: 300,
+        alignItems: 'center',
+        marginTop: 50,
     },
     messageText: {
         color: '#333333',
         textAlign: 'center',
         fontSize: 16,
+        marginTop: 10,
     },
     icon: {
         marginBottom: 10,

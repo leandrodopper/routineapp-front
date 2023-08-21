@@ -281,9 +281,13 @@ export const EntrenamientoScreen = ({ route }: EntrenamientoScreenProps) => {
 
     return (
         <ScrollView style={styles.container}>
+
+
             <View style={styles.timerContainer}>
                 <Text style={styles.timerText}>En curso: {formatTime(timeElapsed)}</Text>
             </View>
+
+
             <Text style={styles.instructionsText}>
                 Puedes deslizarte hacia la izquierda o derecha entre la lista de ejercicios. Para ver en detalle el ejercicio, puedes pulsar en la tarjeta de abajo
             </Text>
@@ -527,7 +531,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'red',
     },
     timerContainer: {
-        position: 'absolute',
+        position: 'relative',
         top: 20,
         alignSelf: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.6)',
@@ -636,5 +640,4 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginTop: 10,
     },
-
 });

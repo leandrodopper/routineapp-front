@@ -174,6 +174,18 @@ export interface Alimento {
     comidaId: number;
 }
 
+export interface GetUsuarioResponse {
+    id:        number;
+    nombre:    string;
+    apellidos: string;
+    username:  string;
+    email:     string;
+    telefono:  string;
+    altura:    number;
+    peso:      number;
+    edad:      number;
+    imagen:    string;
+}
 
 
 

@@ -1,16 +1,16 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Picker } from '@react-native-picker/picker';
 import routineApi from '../api/routineApi';
-import { Ejercicio, GetTiemposResponse } from '../interfaces/appInterfaces';
+import { Ejercicio, GetTiemposResponse, Usuario } from '../interfaces/appInterfaces';
 import { LineChart, PieChart } from 'react-native-chart-kit';
 
 type DataEntry = [number, string, boolean];
 
 export const EstadisticasScreen = () => {
-    const { user, token } = useContext(AuthContext);
+    const { user, token, logOut } = useContext(AuthContext);
 
     const hasPremiumRole = user?.roles?.some(role => role.nombre === 'ROLE_PREMIUM') || false;
 
@@ -23,6 +23,7 @@ export const EstadisticasScreen = () => {
     const [tiempoData, setTiempoData] = useState<GetTiemposResponse>();
     const [datosMusculares, setDatosMusculares] = useState([]);
     const [segmentColors, setSegmentColors] = useState<string[]>([]);
+    const [roleData, setRoleData] = useState();
 
 
     const generateRandomColors = (count: number) => {
@@ -182,6 +183,31 @@ export const EstadisticasScreen = () => {
         const green = Math.floor(Math.random() * 256);
         const blue = Math.floor(Math.random() * 256);
         return `#${componentToHex(red)}${componentToHex(green)}${componentToHex(blue)}`;
+    }
+
+    const handleAddPremiumRole = () => {
+        if (!token) {
+            return;
+        }
+        try {
+            const idUsuario = user?.id;
+            const config = {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },  
+            };
+            routineApi.post(`/auth/agregar-rol?usuarioId=${idUsuario}&nuevoRol=ROLE_PREMIUM`,config)
+                .then(response => {
+                    setRoleData(response.data);
+                    Alert.alert("Éxito", "Por favor, vuelve a iniciar sesión para hacer efectivo tu membresía Premium")
+                    logOut();
+                })
+                .catch(error => {
+                    console.error('Error al agregar rol Premium:', error);
+                });
+        } catch (error) {
+            console.error('Error al agregar rol Premium:', error);
+        }
     }
 
 
@@ -424,6 +450,12 @@ export const EstadisticasScreen = () => {
                             Para acceder a estadísticas avanzadas, actualiza a una cuenta Premium.
                         </Text>
                     </TouchableOpacity>
+                    <TouchableOpacity 
+                    style={styles.premiumButton}
+                    onPress={handleAddPremiumRole}
+                    >
+                        <Text style={{color:'white', fontWeight:'bold', fontSize:20}}>Hazte Premium</Text>
+                    </TouchableOpacity>
                 </View>
             )}
         </View>
@@ -531,6 +563,16 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         color: '#5856D6',
     },
+    premiumButton:{
+        height:100,
+        width:200,
+        backgroundColor: '#5856D6',
+        borderRadius:20,
+        marginTop:100,
+        alignItems:'center',
+        justifyContent:'center'
+
+    }
 });
 
 

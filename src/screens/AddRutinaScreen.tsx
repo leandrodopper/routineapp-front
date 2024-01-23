@@ -49,7 +49,7 @@ export const AddRutinaScreen = () => {
         <View style={loginStyles.title}>
           <TouchableOpacity
             style={styles.button}
-            onPress={() => navigation.navigate('RutinasScreen' as never)}
+            onPress={() => navigation.goBack()}
             activeOpacity={0.8}
           >
             <Icon name='arrow-back-outline' size={25} color='white'/>

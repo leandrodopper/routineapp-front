@@ -247,7 +247,7 @@ export const RutinaDetailsScreen = () => {
   }
 
   const handleBorrarDiaRutina = (dia: DiaRutina) => {
-    Alert.alert('Confirmación', `Vas a eliminar un día (id:${dia.id}) de la rutina, ¿estás seguro?`,
+    Alert.alert('Confirmación', `Vas a eliminar un día de la rutina, ¿estás seguro?`,
       [
         {
           text: 'Aceptar', onPress: async () => {

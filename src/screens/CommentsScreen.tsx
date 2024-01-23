@@ -161,7 +161,7 @@ export const CommentsScreen = ({ route }: CommentsScreenProps) => {
     }
 
     const handleBorrar = async (comentarioId: number) => {
-        Alert.alert('Confirmación', `Vas a eliminar un comentario ${comentarioId} de la rutina , ¿estás seguro?`,
+        Alert.alert('Confirmación', `Vas a eliminar un comentario de la rutina , ¿estás seguro?`,
             [
                 {
                     text: 'Aceptar', onPress: async () => {
